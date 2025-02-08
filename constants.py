@@ -19,6 +19,7 @@ def makeCommand(func):
     return cmdFn
 
 
+# TODO: update Drive and TunerConstants for the new chassis
 class Drive:
     # module parameters
     kWheelRadius = 2.0 * unit.inch
@@ -51,18 +52,6 @@ class Limelight:
     kGyroId = 20
     kLimelightHostnames = [ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
-
-class Turntable:
-    # motor ID as set in the firmware
-    driveMotorId = 13
-    # PIDv values for motor speed controll
-    motorPID = {"p": 0.01, "i": 0, "d": 0, "v": 0.12}
-
-class Spinner:
-    # motor ID as set in the firmware
-    driveMotorId = 14
-    # PIDv values for motor speed controll
-    motorPID = {"p": 0.01, "i": 0, "d": 0, "v": 0.12}
 
 class TunerConstants:
     """

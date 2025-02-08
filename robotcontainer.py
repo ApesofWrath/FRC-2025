@@ -1,8 +1,10 @@
 # project imports
 import constants
 from subsystems.limelight import Limelight
-from subsystems.spinner import Spinner
-from subsystems.turntable import Turntable
+from subsystems.elivator import Elivator
+from subsystems.wrist import Wrist
+from subsystems.grabber import Grabber
+from subsystems.climb import Climb
 
 # commands imports
 import commands2
@@ -31,13 +33,7 @@ class RobotContainer:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
         self.robotDrive = constants.TunerConstants.create_drivetrain()
-        #self.turntable = Turntable()
-        #self.spinner = Spinner()
         self.limelight = Limelight(self.robotDrive)
-
-        # The robot's commands
-        #NamedCommands.registerCommand("spinner.off", self.spinner.off())
-        #NamedCommands.registerCommand("spinner.on", self.spinner.on())
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -120,20 +116,12 @@ class RobotContainer:
 		)
 
         # go to the closest alignment target
-        self.driverController.povLeft().onTrue(self.limelight.align())
+        #self.driverController.povLeft().onTrue(self.limelight.align())
 
         self.logger = Telemetry(constants.Global.max_speed)
         self.robotDrive.register_telemetry(
             lambda state: self.logger.telemeterize(state)
         )
-
-		# Subsystems
-        #self.driverController.a().onTrue(self.turntable.freespin(2)).onFalse(self.turntable.freespin(0))
-        #self.driverController.b().onTrue(self.turntable.freespin(-2)).onFalse(self.turntable.freespin(0))
-        #self.driverController.x().onTrue(self.turntable.turndeg(90))
-        #self.driverController.y().onTrue(self.turntable.turnto(0))
-        #self.driverController.povUp().onTrue(self.spinner.on())
-        #self.driverController.povDown().onTrue(self.spinner.off())
 
     def getAutonomousCommand(self) -> commands2.Command:
         """

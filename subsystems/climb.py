@@ -12,8 +12,7 @@ from wpilib import SmartDashboard
 from phoenix6.hardware.talon_fx import TalonFX
 from phoenix6 import configs, controls
 
-
-class Spinner(commands2.PIDSubsystem):
+class Climb(commands2.PIDSubsystem):
     def __init__(self) -> None:
         super().__init__(
             wpimath.controller.PIDController(
@@ -36,8 +35,8 @@ class Spinner(commands2.PIDSubsystem):
         slot0Config.k_v = constants.Spinner.motorPID["v"]
         self.motor.configurator.apply(motor_cfg)
 
-        self.states = Enum("States", ["ON", "OFF"])  # type: ignore
-        self.state = self.states.OFF
+        self.states = Enum("States", ["ON"])  # type: ignore
+        self.state = None
 
     def setState(self, state) -> None:
         self.state = state
@@ -45,15 +44,8 @@ class Spinner(commands2.PIDSubsystem):
     def on(self) -> commands2.Command:
         return cmd.runOnce(lambda: self.setState(self.states.ON))
 
-    def off(self) -> commands2.Command:
-        return cmd.runOnce(lambda: self.setState(self.states.OFF))
-
     def periodic(self) -> None:
         super().periodic()
         match self.state:
             case self.states.ON:
-                turn_request = controls.VelocityVoltage(3).with_slot(0)
-            case self.states.OFF:
-                turn_request = controls.VelocityVoltage(0).with_slot(0)
-        self.motor.set_control(turn_request)
-        SmartDashboard.putNumber("spinner", self.motor.get_position()._value)
+                pass
