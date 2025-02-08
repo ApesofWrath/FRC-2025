@@ -19,12 +19,19 @@ class Elevator(commands2.Subsystem):
         self.othrMotor = TalonFX(constants.Elevator.othrMotorId)
         self.othrMotor.set_control(controls.Follower(constants.Elevator.mainMotorId, False))
 
-        limit_configs = configs.CurrentLimitsConfigs()
-        limit_configs.stator_current_limit = 120
-        limit_configs.stator_current_limit_enable = True
-        self.mainMotor.configurator.apply(limit_configs)
-        self.othrMotor.configurator.apply(limit_configs)
-        # TODO: phoenix software soft limits
+        current_configs = configs.CurrentLimitsConfigs() \
+            .with_stator_current_limit_enable() \
+            .with_stator_current_limit(120)
+        self.mainMotor.configurator.apply(current_configs)
+        self.othrMotor.configurator.apply(current_configs)
+
+        softlimit_configs = configs.SoftwareLimitSwitchConfigs() \
+            .with_forward_soft_limit_enable() \
+            .with_reverse_soft_limit_enable() \
+            .with_forward_soft_limit_threshold(53/constants.Elevator.inchPerTurn) \
+            .with_reverse_soft_limit_threshold(0)
+        self.mainMotor.configurator.apply(softlimit_configs)
+        self.othrMotor.configurator.apply(softlimit_configs)
 
         self.voltage_req = controls.VoltageOut(0)
 
