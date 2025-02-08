@@ -31,7 +31,7 @@ class Elevator(commands2.Subsystem):
 
         motorConfigs.current_limits = configs.CurrentLimitsConfigs() \
             .with_stator_current_limit_enable(True) \
-            .with_stator_current_limit(120)
+            .with_stator_current_limit(80)
 
         motorConfigs.software_limit_switch = configs.SoftwareLimitSwitchConfigs() \
             .with_forward_soft_limit_enable(True) \
@@ -39,6 +39,7 @@ class Elevator(commands2.Subsystem):
             .with_forward_soft_limit_threshold(30/constants.Elevator.inchPerTurn) \
             .with_reverse_soft_limit_threshold(0)
 
+        # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
         motorConfigs.slot0 = configs.Slot0Configs() \
             .with_k_s(0.082448) \
             .with_k_v(0.11385) \
@@ -48,9 +49,9 @@ class Elevator(commands2.Subsystem):
             .with_k_d(0.1818)
 
         motorConfigs.motion_magic = configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(10/constants.Elevator.inchPerTurn) \
-            .with_motion_magic_cruise_velocity(10/constants.Elevator.inchPerTurn) \
-            .with_motion_magic_jerk(100/constants.Elevator.inchPerTurn)
+            .with_motion_magic_acceleration(200/constants.Elevator.inchPerTurn) \
+            .with_motion_magic_cruise_velocity(60/constants.Elevator.inchPerTurn) \
+            .with_motion_magic_jerk(2000/constants.Elevator.inchPerTurn)
 
         self.mainMotor.configurator.apply(motorConfigs)
         self.othrMotor.configurator.apply(motorConfigs)
