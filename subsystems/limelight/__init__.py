@@ -14,7 +14,7 @@ class Limelight(commands2.Subsystem):
     def __init__(self, drive: Drivetrain):
         super().__init__()
         self.drivetrain = drive
-        self.pigeon2 = Pigeon2(constants.Limelight.kGyroId)
+        self.pigeon2 = Pigeon2(constants.TunerConstants._pigeon_id)
         self.pigeon2.set_yaw(0)
 
         for target in constants.Limelight.kAlignmentTargets:

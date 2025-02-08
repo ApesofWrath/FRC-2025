@@ -49,9 +49,12 @@ class Drive:
     )
 
 class Limelight:
-    kGyroId = 20
     kLimelightHostnames = [ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
+
+class Elevator:
+    mainMotorId: int = 14
+    othrMotorId: int = 15
 
 class TunerConstants:
     """
@@ -141,7 +144,7 @@ class TunerConstants:
     _invert_left_side = False
     _invert_right_side = True
 
-    _pigeon_id = 20
+    _pigeon_id = 13
 
     # These are only used for simulation
     _steer_inertia: units.kilogram_square_meter = 0.01
@@ -294,6 +297,8 @@ class TunerConstants:
 class Global:
     # dashboard port used by the driver controller
     kDriverControllerPort = 0
+    kOperatorControllerPort = 1
+    kConfigControllerPort = 2
     # TODO: remove redundancy, these are already in TunerConstants
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
     break_speed_mul = 0.5

@@ -1,7 +1,7 @@
 # project imports
 import constants
 from subsystems.limelight import Limelight
-from subsystems.elivator import Elivator
+from subsystems.elevator import Elevator
 from subsystems.wrist import Wrist
 from subsystems.grabber import Grabber
 from subsystems.climb import Climb
@@ -9,13 +9,13 @@ from subsystems.climb import Climb
 # commands imports
 import commands2
 import commands2.button
-import commands2.cmd
+from commands2 import cmd
 from commands2.sysid import SysIdRoutine
 
 # wpi imports
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
-from phoenix6 import swerve
+from phoenix6 import swerve, SignalLogger
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
 from telemetry import Telemetry
@@ -34,9 +34,12 @@ class RobotContainer:
         # The robot's subsystems
         self.robotDrive = constants.TunerConstants.create_drivetrain()
         self.limelight = Limelight(self.robotDrive)
+        self.elevator = Elevator()
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
+        self.operatorController = commands2.button.CommandXboxController(constants.Global.kOperatorControllerPort)
+        self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
 		# Setting up bindings for necessary control of the swerve drive platform
         self.drive = (
@@ -122,6 +125,14 @@ class RobotContainer:
         self.robotDrive.register_telemetry(
             lambda state: self.logger.telemeterize(state)
         )
+
+        # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
+        self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
+        self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
+        self.configController.y().whileTrue(self.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
+        self.configController.a().whileTrue(self.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
+        self.configController.b().whileTrue(self.elevator.sys_id_dynamic(SysIdRoutine.Direction.kForward))
+        self.configController.x().whileTrue(self.elevator.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
 
     def getAutonomousCommand(self) -> commands2.Command:
         """
