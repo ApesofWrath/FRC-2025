@@ -21,7 +21,9 @@ class Limelight:
 class Elevator:
     mainMotorId: int = 14
     othrMotorId: int = 15
-    inchPerTurn: units.inches = (8/56) * (45/8)
+    inchPerTurn: units.inches = (8/56) * (45/8) * 2
+
+    
 
 class TunerConstants:
     """
@@ -31,7 +33,7 @@ class TunerConstants:
 
     _drive_gear_ratio = 6.746031746031747
     _steer_gear_ratio = 21.428571428571427
-    _wheel_radius: units.meter = inchesToMeters(2)
+    _wheel_radius: units.meters = inchesToMeters(2)
 
     # Both sets of gains need to be tuned to your individual robot
 
@@ -76,7 +78,7 @@ class TunerConstants:
 
     # The stator current at which the wheels start to slip;
     # This needs to be tuned to your individual robot
-    _slip_current: units.ampere = 120.0
+    _slip_current: units.amperes = 120.0
 
     # Initial configs for the drive and steer motors and the azimuth encoder; these cannot be null.
     # Some configs will be overwritten; check the `with_*_initial_configs()` API documentation.
@@ -114,11 +116,11 @@ class TunerConstants:
     _pigeon_id = 13
 
     # These are only used for simulation
-    _steer_inertia: units.kilogram_square_meter = 0.01
-    _drive_inertia: units.kilogram_square_meter = 0.01
+    _steer_inertia: units.kilogram_square_meters = 0.01
+    _drive_inertia: units.kilogram_square_meters = 0.01
     # Simulated voltage necessary to overcome friction
-    _steer_friction_voltage: units.volt = 0.2
-    _drive_friction_voltage: units.volt = 0.2
+    _steer_friction_voltage: units.volts = 0.2
+    _drive_friction_voltage: units.volts = 0.2
 
     drivetrain_constants = (
         swerve.SwerveDrivetrainConstants()
@@ -156,45 +158,45 @@ class TunerConstants:
     _front_left_drive_motor_id = 3
     _front_left_steer_motor_id = 4
     _front_left_encoder_id = 10
-    _front_left_encoder_offset: units.rotation = degreesToRotations(180-203.82)
+    _front_left_encoder_offset = degreesToRotations(180-203.82)
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
-    _front_left_x_pos: units.meter = inchesToMeters(14)
-    _front_left_y_pos: units.meter = inchesToMeters(14)
+    _front_left_x_pos: units.meters = inchesToMeters(14)
+    _front_left_y_pos: units.meters = inchesToMeters(14)
 
     # Front Right
     _front_right_drive_motor_id = 7
     _front_right_steer_motor_id = 8
     _front_right_encoder_id = 12
-    _front_right_encoder_offset: units.rotation = degreesToRotations(-262.79)
+    _front_right_encoder_offset = degreesToRotations(-262.79)
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
-    _front_right_x_pos: units.meter = inchesToMeters(14)
-    _front_right_y_pos: units.meter = inchesToMeters(-14)
+    _front_right_x_pos: units.meters = inchesToMeters(14)
+    _front_right_y_pos: units.meters = inchesToMeters(-14)
 
     # Back Left
     _back_left_drive_motor_id = 1
     _back_left_steer_motor_id = 2
     _back_left_encoder_id = 9
-    _back_left_encoder_offset: units.rotation = degreesToRotations(235.99)
+    _back_left_encoder_offset = degreesToRotations(235.99)
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
-    _back_left_x_pos: units.meter = inchesToMeters(-14)
-    _back_left_y_pos: units.meter = inchesToMeters(14)
+    _back_left_x_pos: units.meters = inchesToMeters(-14)
+    _back_left_y_pos: units.meters = inchesToMeters(14)
 
     # Back Right
     _back_right_drive_motor_id = 5
     _back_right_steer_motor_id = 6
     _back_right_encoder_id = 11
-    _back_right_encoder_offset: units.rotation = degreesToRotations(180-241.46-8.7)
+    _back_right_encoder_offset = degreesToRotations(180-241.46-8.7)
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 
-    _back_right_x_pos: units.meter = inchesToMeters(-14)
-    _back_right_y_pos: units.meter = inchesToMeters(-14)
+    _back_right_x_pos: units.meters = inchesToMeters(-14)
+    _back_right_y_pos: units.meters = inchesToMeters(-14)
 
 
     front_left = _constants_creator.create_module_constants(

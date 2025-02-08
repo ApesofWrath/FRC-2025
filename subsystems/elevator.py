@@ -6,10 +6,11 @@ import commands2
 from wpimath import units
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog
+from wpilib import SmartDashboard
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
-from phoenix6 import SignalLogger, controls, configs
+from phoenix6 import SignalLogger, controls, configs, signals
 
 class Elevator(commands2.Subsystem):
     def __init__(self) -> None:
@@ -19,26 +20,48 @@ class Elevator(commands2.Subsystem):
         self.othrMotor = TalonFX(constants.Elevator.othrMotorId)
         self.othrMotor.set_control(controls.Follower(constants.Elevator.mainMotorId, False))
 
-        current_configs = configs.CurrentLimitsConfigs() \
-            .with_stator_current_limit_enable() \
-            .with_stator_current_limit(120)
-        self.mainMotor.configurator.apply(current_configs)
-        self.othrMotor.configurator.apply(current_configs)
+        self.mainMotor.set_position(0)
+        self.othrMotor.set_position(0)
 
-        softlimit_configs = configs.SoftwareLimitSwitchConfigs() \
-            .with_forward_soft_limit_enable() \
-            .with_reverse_soft_limit_enable() \
-            .with_forward_soft_limit_threshold(53/constants.Elevator.inchPerTurn) \
+        motorConfigs = configs.TalonFXConfiguration()
+        motorConfigs.motor_output
+
+        motorConfigs.motor_output = configs.MotorOutputConfigs() \
+            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+
+        motorConfigs.current_limits = configs.CurrentLimitsConfigs() \
+            .with_stator_current_limit_enable(True) \
+            .with_stator_current_limit(120)
+
+        motorConfigs.software_limit_switch = configs.SoftwareLimitSwitchConfigs() \
+            .with_forward_soft_limit_enable(True) \
+            .with_reverse_soft_limit_enable(True) \
+            .with_forward_soft_limit_threshold(30/constants.Elevator.inchPerTurn) \
             .with_reverse_soft_limit_threshold(0)
-        self.mainMotor.configurator.apply(softlimit_configs)
-        self.othrMotor.configurator.apply(softlimit_configs)
+
+        motorConfigs.slot0 = configs.Slot0Configs() \
+            .with_k_s(0.082448) \
+            .with_k_v(0.11385) \
+            .with_k_a(0.00253) \
+            .with_k_g(0.22885) \
+            .with_k_p(11.629) \
+            .with_k_d(0.1818)
+
+        motorConfigs.motion_magic = configs.MotionMagicConfigs() \
+            .with_motion_magic_acceleration(10/constants.Elevator.inchPerTurn) \
+            .with_motion_magic_cruise_velocity(10/constants.Elevator.inchPerTurn) \
+            .with_motion_magic_jerk(100/constants.Elevator.inchPerTurn)
+
+        self.mainMotor.configurator.apply(motorConfigs)
+        self.othrMotor.configurator.apply(motorConfigs)
 
         self.voltage_req = controls.VoltageOut(0)
 
         self.sys_id_routine = SysIdRoutine(
             SysIdRoutine.Config(
                 stepVoltage = 4.0,
-                recordState = lambda state: SignalLogger.write_string("state", SysIdRoutineLog.stateEnumToString(state))
+                recordState = lambda state: SignalLogger.write_string("state", SysIdRoutineLog.stateEnumToString(state)),
+                timeout = 3.5
             ),
             SysIdRoutine.Mechanism(
                 lambda volts: self.mainMotor.set_control(self.voltage_req.with_output(volts)),
@@ -61,6 +84,12 @@ class Elevator(commands2.Subsystem):
 
     def periodic(self) -> None:
         super().periodic()
+
+        request = controls.MotionMagicVoltage(0)
         self.mainMotor.set_control(
-            controls.PositionDutyCycle(self.target / constants.Elevator.inchPerTurn)
+            request.with_position(self.target / constants.Elevator.inchPerTurn)
         )
+
+        SmartDashboard.putNumber("main elev pos", self.mainMotor.get_position().value_as_double * constants.Elevator.inchPerTurn)
+        SmartDashboard.putNumber("other elev pos", self.othrMotor.get_position().value_as_double * constants.Elevator.inchPerTurn)
+        SmartDashboard.putNumber("elev target", self.target)
