@@ -2,51 +2,17 @@ import math
 
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
 from wpimath.units import inchesToMeters, degreesToRotations, rotationsToRadians, degreesToRadians
+from wpimath import units
 from subsystems.drivetrain import CommandSwerveDrivetrain
-from pint import UnitRegistry
 import commands2.cmd as cmd
 from wpimath.geometry import Pose2d
-
-# real-world unit types
-# TODO: use wpimath.units for all of it
-unit = UnitRegistry()
-
 
 def makeCommand(func):
     def cmdFn(*args, **kwargs):
         return cmd.runOnce(lambda: func(*args, **kwargs))
-
     return cmdFn
 
-
 # TODO: update Drive and TunerConstants for the new chassis
-class Drive:
-    # module parameters
-    kWheelRadius = 2.0 * unit.inch
-    kWheelCircumference = kWheelRadius * 2 * math.pi / unit.turn
-    kEncoderResolution = 4096  # counts per rotation
-    kModuleMaxAngularVelocity = math.pi * unit.radian / unit.second
-    kModuleMaxAngularAcceleration = math.tau * unit.radian / unit.second / unit.second
-    kTurnRatio = 150.0 / 7.0
-    kDriveRatio = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)
-    kDrive_p = 0.01
-    kDrive_i = 0
-    kDrive_d = 0
-    kDrive_v = 12.0 / (100.0 / kDriveRatio)
-    kTurn_p = 40
-    kTurn_i = 0
-    kTurn_d = 0
-    # drivetrain paramaters
-    kMaxSpeed = 3.0 * unit.meter / unit.second  # 3 meters per second
-    kMaxAngularSpeed = math.pi * unit.radian / unit.second  # 1/2 rotation per second
-    kChassisWidth = 28.0 * unit.inch
-    kChassisLength = 28.0 * unit.inch
-    kChassisRadius = (
-        math.sqrt(
-            kChassisWidth.m * kChassisWidth.m + kChassisLength.m * kChassisLength.m
-        )
-        * unit.inch
-    )
 
 class Limelight:
     kLimelightHostnames = [ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
@@ -55,7 +21,7 @@ class Limelight:
 class Elevator:
     mainMotorId: int = 14
     othrMotorId: int = 15
-    inchPerTurn: float = (8/56) * (45/8)
+    inchPerTurn: units.inches = (8/56) * (45/8)
 
 class TunerConstants:
     """
@@ -296,11 +262,9 @@ class TunerConstants:
         )
 
 class Global:
-    # dashboard port used by the driver controller
     kDriverControllerPort = 0
     kOperatorControllerPort = 1
     kConfigControllerPort = 2
-    # TODO: remove redundancy, these are already in TunerConstants
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
     break_speed_mul = 0.5
     max_angular_rate = rotationsToRadians(0.75)  # 3/4 of a rotation per second max angular velocity

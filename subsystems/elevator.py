@@ -18,7 +18,7 @@ class Elevator(commands2.Subsystem):
         self.mainMotor = TalonFX(constants.Elevator.mainMotorId)
         self.othrMotor = TalonFX(constants.Elevator.othrMotorId)
         self.othrMotor.set_control(controls.Follower(constants.Elevator.mainMotorId, False))
-        
+
         limit_configs = configs.CurrentLimitsConfigs()
         limit_configs.stator_current_limit = 120
         limit_configs.stator_current_limit_enable = True
