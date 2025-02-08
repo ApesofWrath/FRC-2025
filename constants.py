@@ -55,6 +55,7 @@ class Limelight:
 class Elevator:
     mainMotorId: int = 14
     othrMotorId: int = 15
+    inchPerTurn: float = (8/56) * (45/8)
 
 class TunerConstants:
     """
@@ -303,4 +304,3 @@ class Global:
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
     break_speed_mul = 0.5
     max_angular_rate = rotationsToRadians(0.75)  # 3/4 of a rotation per second max angular velocity
-    canivore = "0A58A9B5463847532020204B17130DFF"
