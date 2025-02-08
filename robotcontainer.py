@@ -32,17 +32,17 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
-        #self.robotDrive = constants.TunerConstants.create_drivetrain()
-        #self.limelight = Limelight(self.robotDrive)
+        self.robotDrive = constants.TunerConstants.create_drivetrain()
+        self.limelight = Limelight(self.robotDrive)
         self.elevator = Elevator()
 
         # The driver's controller
-        #self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
+        self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
         self.operatorController = commands2.button.CommandXboxController(constants.Global.kOperatorControllerPort)
         self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
 		# Setting up bindings for necessary control of the swerve drive platform
-        '''self.drive = (
+        self.drive = (
             swerve.requests.FieldCentric()
             .with_deadband(constants.Global.max_speed * 0.1)
             .with_rotational_deadband(
@@ -51,14 +51,14 @@ class RobotContainer:
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
-        )'''
+        )
 
         # Configure the button bindings
         self.configureButtonBindings()
 
         # Build an auto chooser. This will use Commands.none() as the default option.
-        #self.autoChooser = AutoBuilder.buildAutoChooser()
-     #   SmartDashboard.putData("Auto Chooser", self.autoChooser)
+        self.autoChooser = AutoBuilder.buildAutoChooser()
+        SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
     def configureButtonBindings(self) -> None:
         """
@@ -67,7 +67,7 @@ class RobotContainer:
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
         # Drive
-        '''self.robotDrive.setDefaultCommand(
+        self.robotDrive.setDefaultCommand(
             # Drivetrain will execute this command periodically
             self.robotDrive.apply_request(
                 lambda: (
@@ -87,14 +87,14 @@ class RobotContainer:
                     )  # Drive counterclockwise with X (right)
                 )
             )
-        )'''
+        )
 
         # break on triggers
-        #(self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+        (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
         # Run SysId routines when holding back and face buttons.
         # Note that each routine should be run exactly once in a single log.
-        '''(self.driverController.back() & self.driverController.a()).whileTrue(
+        (self.driverController.back() & self.driverController.a()).whileTrue(
             self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
         )
         (self.driverController.back() & self.driverController.b()).whileTrue(
@@ -105,25 +105,25 @@ class RobotContainer:
         )
         (self.driverController.back() & self.driverController.y()).whileTrue(
             self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-        )'''
+        )
 
         # reset the field-centric heading on start press
-        #self.driverController.start().onTrue(
-        #    self.limelight.runOnce(lambda: self.limelight.pigeon2.set_yaw(0))
-        #)
+        self.driverController.start().onTrue(
+            self.limelight.runOnce(lambda: self.limelight.pigeon2.set_yaw(0))
+        )
 
         # modules turn toward their zeros
-       # self.driverController.back().onTrue(
-            #self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
-	#	)
+        self.driverController.back().onTrue(
+            self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
+		)
 
         # go to the closest alignment target
-        #self.driverController.povLeft().onTrue(self.limelight.align())
+        self.driverController.povLeft().onTrue(self.limelight.align())
 
         self.logger = Telemetry(constants.Global.max_speed)
-        #self.robotDrive.register_telemetry(
-        #    lambda state: self.logger.telemeterize(state)
-        #)
+        self.robotDrive.register_telemetry(
+            lambda state: self.logger.telemeterize(state)
+        )
 
         self.operatorController.a().onTrue(self.elevator.setHeight(5))
         self.operatorController.b().onTrue(self.elevator.setHeight(20))
@@ -142,4 +142,4 @@ class RobotContainer:
 
         :returns: the command to run in autonomous
         """
-       # return self.autoChooser.getSelected()
+        return self.autoChooser.getSelected()
