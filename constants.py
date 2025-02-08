@@ -20,6 +20,13 @@ class Elevator:
     mainMotorId: int = 14
     othrMotorId: int = 15
     inchPerTurn: units.inches = (8/56) * (45/8) * 2
+    currentLimit = 80
+    forwardLimit = 30/inchPerTurn
+    reverseLimit = 0
+    s, v, a, g, p, d = 0.082448, 0.11385, 0.00253, 0.22885, 11.629, 0.1818
+    acceleration = 200/inchPerTurn
+    velocity = 60/inchPerTurn
+    jerk = 2000/inchPerTurn
 
 class TunerConstants:
     """
