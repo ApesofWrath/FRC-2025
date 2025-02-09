@@ -5,6 +5,7 @@ from subsystems.elevator import Elevator
 from subsystems.wrist import Wrist
 from subsystems.grabber import Grabber
 from subsystems.climb import Climb
+from telemetry import Telemetry
 
 # commands imports
 import commands2
@@ -15,9 +16,8 @@ from commands2.sysid import SysIdRoutine
 # wpi imports
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
-from phoenix6 import swerve, SignalLogger
+from phoenix6 import swerve, SignalLogger, utils
 from pathplannerlib.auto import AutoBuilder, NamedCommands
-
 
 class RobotContainer:
     """
@@ -134,6 +134,12 @@ class RobotContainer:
         self.configController.a().whileTrue(self.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
         self.configController.b().whileTrue(self.elevator.sys_id_dynamic(SysIdRoutine.Direction.kForward))
         self.configController.x().whileTrue(self.elevator.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
+
+        if not utils.is_simulation():
+            self.logger = Telemetry(constants.Global.max_speed)
+            self.robotDrive.register_telemetry(
+                lambda state: self.logger.telemeterize(state)
+            )
 
     def getAutonomousCommand(self) -> commands2.Command:
         """
