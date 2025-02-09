@@ -9,12 +9,35 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/Pose": "Field2d",
       "/SmartDashboard/Auto Chooser": "String Chooser",
+      "/SmartDashboard/Elevator": "Mechanism2d",
       "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Module 0": "Mechanism2d",
+      "/SmartDashboard/Module 1": "Mechanism2d",
+      "/SmartDashboard/Module 2": "Mechanism2d",
+      "/SmartDashboard/Module 3": "Mechanism2d",
+      "/SmartDashboard/alignTarget (12.3,5.25)": "Field2d",
       "/SmartDashboard/odo_raw": "Field2d"
     },
     "windows": {
+      "/Pose": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Auto Chooser": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Elevator": {
         "window": {
           "visible": true
         }
@@ -25,10 +48,7 @@
         "left": 150,
         "right": 2961,
         "top": 79,
-        "width": 16.541748046875,
-        "window": {
-          "visible": true
-        }
+        "width": 16.541748046875
       },
       "/SmartDashboard/odo_raw": {
         "bottom": 1476,
@@ -36,10 +56,7 @@
         "left": 150,
         "right": 2961,
         "top": 79,
-        "width": 16.541748046875,
-        "window": {
-          "visible": true
-        }
+        "width": 16.541748046875
       }
     }
   },
@@ -56,6 +73,11 @@
           "open": true
         }
       },
+      "Pose": {
+        "double[]##v_/Pose/robotPose": {
+          "open": true
+        }
+      },
       "Shuffleboard": {
         ".metadata": {
           "open": true
@@ -67,6 +89,9 @@
             "open": true
           }
         },
+        "Elevator": {
+          "open": true
+        },
         "Field": {
           "double[]##v_/SmartDashboard/Field/Robot": {
             "open": true
@@ -75,9 +100,6 @@
         "open": true
       }
     }
-  },
-  "NetworkTables Info": {
-    "visible": true
   },
   "Plot": {
     "Plot <0>": {

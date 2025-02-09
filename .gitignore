@@ -7,3 +7,4 @@
 tests/logs/*
 ctre_sim/*.dat
 ctre_sim
+logs
