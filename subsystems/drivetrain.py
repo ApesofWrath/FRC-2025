@@ -26,7 +26,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
 
     # from https://github.com/CrossTheRoadElec/Phoenix6-Examples/blob/68e3df4bb509a8e4c35d584173d340519dac7863/python/SwerveWithPathPlanner/subsystems/command_swerve_drivetrain.py#L242
     def _configure_auto_builder(self):
-        config = RobotConfig.fromGUISettings()
+        AutoBuilder._configured = False
         AutoBuilder.configure(
             lambda: self.get_state().pose,   # Supplier of current robot pose
             self.reset_pose,                 # Consumer for seeding pose against auto
@@ -44,7 +44,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                 # PID constants for rotation
                 PIDConstants(7.0, 0.0, 0.0)
             ),
-            config,
+            RobotConfig.fromGUISettings(),
             # Assume the path needs to be flipped for Red vs Blue, this is normally the case
             lambda: (DriverStation.getAlliance() or DriverStation.Alliance.kBlue) == DriverStation.Alliance.kRed,
             self # Subsystem for requirements
