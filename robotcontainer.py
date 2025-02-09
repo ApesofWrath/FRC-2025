@@ -18,7 +18,6 @@ from wpimath.geometry import Rotation2d
 from phoenix6 import swerve, SignalLogger
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
-from telemetry import Telemetry
 
 class RobotContainer:
     """
@@ -124,11 +123,6 @@ class RobotContainer:
 
         # go to the closest alignment target
         self.driverController.povLeft().onTrue(self.limelight.align())
-
-        self.logger = Telemetry(constants.Global.max_speed)
-        self.robotDrive.register_telemetry(
-            lambda state: self.logger.telemeterize(state)
-        )
 
         self.operatorController.a().onTrue(self.elevator.setHeight(5))
         self.operatorController.b().onTrue(self.elevator.setHeight(20))
