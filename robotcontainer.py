@@ -18,7 +18,6 @@ from wpimath.geometry import Rotation2d
 from phoenix6 import swerve, SignalLogger
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
-from telemetry import Telemetry
 
 class RobotContainer:
     """
@@ -35,6 +34,11 @@ class RobotContainer:
         self.robotDrive = constants.TunerConstants.create_drivetrain()
         self.limelight = Limelight(self.robotDrive)
         self.elevator = Elevator()
+
+        # The robot's auton commands
+        NamedCommands.registerCommand("Score L1", cmd.none())
+        NamedCommands.registerCommand("ground pickup (coral)", cmd.none())
+        NamedCommands.registerCommand("Get coral from station", cmd.none())
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -119,11 +123,6 @@ class RobotContainer:
 
         # go to the closest alignment target
         self.driverController.povLeft().onTrue(self.limelight.align())
-
-        self.logger = Telemetry(constants.Global.max_speed)
-        self.robotDrive.register_telemetry(
-            lambda state: self.logger.telemeterize(state)
-        )
 
         self.operatorController.a().onTrue(self.elevator.setHeight(5))
         self.operatorController.b().onTrue(self.elevator.setHeight(20))
