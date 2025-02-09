@@ -35,6 +35,11 @@ class RobotContainer:
         self.limelight = Limelight(self.robotDrive)
         self.elevator = Elevator()
 
+        # The robot's auton commands
+        NamedCommands.registerCommand("Score L1", cmd.none())
+        NamedCommands.registerCommand("ground pickup (coral)", cmd.none())
+        NamedCommands.registerCommand("Get coral from station", cmd.none())
+
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
         self.operatorController = commands2.button.CommandXboxController(constants.Global.kOperatorControllerPort)
