@@ -2,7 +2,7 @@
 import constants
 from subsystems.limelight import Limelight
 from subsystems.elevator import Elevator
-from subsystems.wrist import Wrist
+from subsystems.pivoter import Pivoter
 from subsystems.grabber import Grabber
 from subsystems.climb import Climb
 from telemetry import Telemetry
