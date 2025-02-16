@@ -17,13 +17,13 @@ class Limelight:
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
 
 class Elevator:
-    mainMotorId: int = 14
-    othrMotorId: int = 15
+    mainMotorId: int = 13
+    othrMotorId: int = 14
     inchPerTurn: units.inches = (8/56) * (45/8) * 2
     currentLimit = 80
     forwardLimit = 30/inchPerTurn
-    reverseLimit = 0
-    s, v, a, g, p, d = 0.082448, 0.11385, 0.00253, 0.22885, 11.629, 0.1818
+    reverseLimit = 5/inchPerTurn
+    s, v, a, g, p, d = 0.42454, 0.12445, 0.0099014, 0.24291, 7.6082, 0.14139
     acceleration = 200/inchPerTurn
     velocity = 60/inchPerTurn
     jerk = 2000/inchPerTurn

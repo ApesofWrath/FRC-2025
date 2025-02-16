@@ -56,6 +56,7 @@ class Elevator(commands2.Subsystem):
         self.othrMotor.configurator.apply(motorConfigs)
 
         self.voltage_req = controls.VoltageOut(0)
+        self.voltage_req.enable_foc = True
 
         self.sys_id_routine = SysIdRoutine(
             SysIdRoutine.Config(
