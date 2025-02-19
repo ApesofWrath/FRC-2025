@@ -31,17 +31,20 @@ class Elevator:
 class Pivoter:
     class Arm:
         id: int = 15
-        currentLimit = None
-        forwardLimit = None
-        reverseLimit = None
-        s, v, a, g, p, d = None, None, None, None, None, None
-        acceleration = None
-        velocity = None
-        jerk = None
-        stepVoltage = None
-        timeout = None
+        encoder: int = 18
+        currentLimit = 40
+        forwardLimit = degreesToRotations(180)
+        reverseLimit = degreesToRotations(0)
+        s, v, a, g, p, d = 0.39776, 0.94099, 2.3004, 0.54562, 54.608, 15.134
+        acceleration = .125
+        velocity = .25
+        jerk = .25
+        stepVoltage = 5
+        rampVoltage = 1.5
+        timeout = 3
     class Wrist:
         id: int = 16
+        encoder: int = 19
         currentLimit = None
         forwardLimit = None
         reverseLimit = None
@@ -54,7 +57,9 @@ class Pivoter:
 
 class Grabber:
     id: int = 17
-    velocity: int = None
+    FWDvelocity: int = 5
+    REVvelocity: int = 1
+    currentLimit: int = 80
 
 class TunerConstants:
     """
@@ -294,5 +299,5 @@ class Global:
     kOperatorControllerPort = 1
     kConfigControllerPort = 2
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
-    break_speed_mul = 0.5
+    break_speed_mul = 0.1
     max_angular_rate = rotationsToRadians(0.75)  # 3/4 of a rotation per second max angular velocity
