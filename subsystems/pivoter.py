@@ -81,10 +81,14 @@ class Pivoter(commands2.Subsystem):
         self.wristMotor.set_position(0)
 
         self.wristEncoder = CANcoder(constants.Pivoter.Wrist.encoder)
+        self.wristEncoder.set_position(0)
 
-        '''wristConfigs = configs.TalonFXConfiguration()
+        wristConfigs = configs.TalonFXConfiguration()
         wristConfigs.motor_output = configs.MotorOutputConfigs() \
             .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+        wristConfigs.feedback = configs.FeedbackConfigs() \
+            .with_feedback_remote_sensor_id(constants.Pivoter.Wrist.encoder) \
+            .with_feedback_sensor_source(signals.FeedbackSensorSourceValue.REMOTE_CANCODER)
         wristConfigs.current_limits = configs.CurrentLimitsConfigs() \
             .with_stator_current_limit_enable(True) \
             .with_stator_current_limit(constants.Pivoter.Wrist.currentLimit)
@@ -105,17 +109,17 @@ class Pivoter(commands2.Subsystem):
             .with_motion_magic_acceleration(constants.Pivoter.Wrist.acceleration) \
             .with_motion_magic_cruise_velocity(constants.Pivoter.Wrist.velocity) \
             .with_motion_magic_jerk(constants.Pivoter.Wrist.jerk)
-        self.wristMotor.configurator.apply(wristConfigs)'''
+        self.wristMotor.configurator.apply(wristConfigs)
 
         self.wrist_sys_id_routine = SysIdRoutine(
             SysIdRoutine.Config(
                 stepVoltage = constants.Pivoter.Wrist.stepVoltage,
                 recordState = lambda state: SignalLogger.write_string("state", SysIdRoutineLog.stateEnumToString(state)),
-                timeout = None
+                timeout = constants.Pivoter.Wrist.timeout
             ),
             SysIdRoutine.Mechanism(
                 lambda volts: self.wristMotor.set_control(self.voltage_req.with_output(volts)),
-                lambda log: constants.Pivoter.Wrist.timeout,
+                lambda log: None,
                 self
             )
         )
@@ -135,16 +139,22 @@ class Pivoter(commands2.Subsystem):
         return self.wrist_sys_id_routine.dynamic(direction)
 
     @constants.makeCommand
-    def setAngle(self, target) -> None:
+    def setArmAngle(self, target) -> None:
         self.armTarget = target
-
-    def periodic(self) -> None:
-        super().periodic()
-
-        request = controls.MotionMagicVoltage(0)
+        
         self.armMotor.set_control(
-            request.with_position(degreesToRotations(self.armTarget))
+            controls.MotionMagicVoltage(0).with_position(degreesToRotations(self.armTarget))
+        )
+    
+    @constants.makeCommand
+    def setWristAngle(self, target) -> None:
+        self.wristTarget = target
+        
+        self.wristMotor.set_control(
+            controls.MotionMagicVoltage(0).with_position(degreesToRotations(self.wristTarget * constants.Pivoter.Wrist.gearRatio))
         )
 
-        SmartDashboard.putNumber("armEncoder", self.armEncoder.get_position().value_as_double)
-        SmartDashboard.putNumber("armMotorEncoder", self.armMotor.get_position().value_as_double)
+    #def periodic(self) -> None:
+        #super().periodic()
+        #SmartDashboard.putNumber("armEncoder", self.armEncoder.get_position().value_as_double)
+        #SmartDashboard.putNumber("armMotorEncoder", self.armMotor.get_position().value_as_double)

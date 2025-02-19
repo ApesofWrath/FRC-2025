@@ -43,17 +43,18 @@ class Pivoter:
         rampVoltage = 1.5
         timeout = 3
     class Wrist:
+        gearRatio: float = 40/15
         id: int = 16
         encoder: int = 19
-        currentLimit = None
-        forwardLimit = None
-        reverseLimit = None
-        s, v, a, g, p, d = None, None, None, None, None, None
-        acceleration = None
-        velocity = None
-        jerk = None
-        stepVoltage = None
-        timeout = None
+        currentLimit = 10
+        forwardLimit = degreesToRotations(60 * gearRatio)
+        reverseLimit = -degreesToRotations(60 * gearRatio)
+        s, v, a, g, p, d = 0.49591, 6.0118, 0.89434, 0, 18.076, 2.7363
+        acceleration = .15 * gearRatio
+        velocity = .3 * gearRatio
+        jerk = .3 * gearRatio
+        stepVoltage = 8
+        timeout = 5
 
 class Grabber:
     id: int = 17

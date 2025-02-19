@@ -81,16 +81,6 @@ class Elevator(commands2.Subsystem):
 
     @constants.makeCommand
     def setHeight(self, target: units.inches) -> None:
-        self.target = target
-
-    def periodic(self) -> None:
-        super().periodic()
-
-        request = controls.MotionMagicVoltage(0)
         self.mainMotor.set_control(
-            request.with_position(self.target / constants.Elevator.inchPerTurn)
+            controls.MotionMagicVoltage(0).with_position(target / constants.Elevator.inchPerTurn)
         )
-
-        SmartDashboard.putNumber("main elev pos", self.mainMotor.get_position().value_as_double * constants.Elevator.inchPerTurn)
-        SmartDashboard.putNumber("other elev pos", self.othrMotor.get_position().value_as_double * constants.Elevator.inchPerTurn)
-        SmartDashboard.putNumber("elev target", self.target)

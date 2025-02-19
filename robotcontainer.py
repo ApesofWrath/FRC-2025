@@ -126,11 +126,14 @@ class RobotContainer:
         # go to the closest alignment target
         self.driverController.povLeft().onTrue(self.limelight.align())
 
-        self.operatorController.a().onTrue(self.elevator.setHeight(0))
-        self.operatorController.b().onTrue(self.elevator.setHeight(22.3))
+        (self.operatorController.povDown()|self.configController.povDown()).onTrue(self.elevator.setHeight(0))
+        (self.operatorController.povUp()|self.configController.povUp()).onTrue(self.elevator.setHeight(27.3))
 
-        self.operatorController.x().onTrue(self.pivoter.setAngle(90))
-        self.operatorController.y().onTrue(self.pivoter.setAngle(54.5))
+        self.operatorController.a().onTrue(self.pivoter.setWristAngle(90))
+        self.operatorController.b().onTrue(self.pivoter.setWristAngle(0))
+
+        self.operatorController.x().onTrue(self.pivoter.setArmAngle(90))
+        self.operatorController.y().onTrue(self.pivoter.setArmAngle(54.5))
 
         self.operatorController.leftBumper().onTrue(self.grabber.FWD()).onFalse(self.grabber.OFF())
         self.operatorController.rightBumper().onTrue(self.grabber.REV()).onFalse(self.grabber.OFF())
@@ -138,10 +141,10 @@ class RobotContainer:
         # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
         self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
         self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
-        self.configController.y().whileTrue(self.pivoter.arm_sys_id_quasistatic(SysIdRoutine.Direction.kForward))
-        self.configController.a().whileTrue(self.pivoter.arm_sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
-        self.configController.b().whileTrue(self.pivoter.arm_sys_id_dynamic(SysIdRoutine.Direction.kForward))
-        self.configController.x().whileTrue(self.pivoter.arm_sys_id_dynamic(SysIdRoutine.Direction.kReverse))
+        self.configController.y().whileTrue(self.pivoter.wrist_sys_id_quasistatic(SysIdRoutine.Direction.kForward))
+        self.configController.a().whileTrue(self.pivoter.wrist_sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
+        self.configController.b().whileTrue(self.pivoter.wrist_sys_id_dynamic(SysIdRoutine.Direction.kForward))
+        self.configController.x().whileTrue(self.pivoter.wrist_sys_id_dynamic(SysIdRoutine.Direction.kReverse))
 
         if not utils.is_simulation():
             self.logger = Telemetry(constants.Global.max_speed)
