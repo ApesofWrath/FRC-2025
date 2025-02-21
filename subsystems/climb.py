@@ -3,10 +3,9 @@ import constants
 
 # wpi imports
 import commands2
-from wpimath import units
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog
-from wpilib import SmartDashboard
+from wpimath import units
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -16,7 +15,7 @@ class Climb(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
 
-        self.mainMotor = TalonFX(constants.Wrist.mainMotorId)
+        self.mainMotor = TalonFX(constants.Climb.mainMotorId)
 
         self.mainMotor.set_position(0)
 
@@ -66,23 +65,14 @@ class Climb(commands2.Subsystem):
             )
         )
 
-        self.states = Enum("States", ["ON"])  # type: ignore
-        self.state = None
-
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.sys_id_routine.quasistatic(direction)
 
     def sys_id_dynamic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.sys_id_routine.dynamic(direction)
 
-    def setState(self, state) -> None:
-        self.state = state
-
-    def on(self) -> commands2.Command:
-        return cmd.runOnce(lambda: self.setState(self.states.ON))
-
-    def periodic(self) -> None:
-        super().periodic()
-        match self.state:
-            case self.states.ON:
-                pass
+    @constants.makeCommand
+    def setHeight(self, target: units.inches) -> None:
+        self.mainMotor.set_control(
+            controls.MotionMagicVoltage(0).with_position(target / constants.Climb.inchPerTurn)
+        )

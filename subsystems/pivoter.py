@@ -124,7 +124,7 @@ class Pivoter(commands2.Subsystem):
             )
         )
 
-        self.armTarget = 90
+        controls.MotionMagicVoltage(0).with_position(degreesToRotations(90))
 
     def arm_sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.arm_sys_id_routine.quasistatic(direction)
@@ -139,19 +139,15 @@ class Pivoter(commands2.Subsystem):
         return self.wrist_sys_id_routine.dynamic(direction)
 
     @constants.makeCommand
-    def setArmAngle(self, target) -> None:
-        self.armTarget = target
-        
+    def setArmAngle(self, target) -> None:        
         self.armMotor.set_control(
-            controls.MotionMagicVoltage(0).with_position(degreesToRotations(self.armTarget))
+            controls.MotionMagicVoltage(0).with_position(degreesToRotations(target))
         )
     
     @constants.makeCommand
-    def setWristAngle(self, target) -> None:
-        self.wristTarget = target
-        
+    def setWristAngle(self, target) -> None:        
         self.wristMotor.set_control(
-            controls.MotionMagicVoltage(0).with_position(degreesToRotations(self.wristTarget * constants.Pivoter.Wrist.gearRatio))
+            controls.MotionMagicVoltage(0).with_position(degreesToRotations(target * constants.Pivoter.Wrist.gearRatio))
         )
 
     #def periodic(self) -> None:

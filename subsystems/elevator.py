@@ -71,8 +71,6 @@ class Elevator(commands2.Subsystem):
             )
         )
 
-        self.target: units.inches = 0
-
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.sys_id_routine.quasistatic(direction)
 

@@ -1,6 +1,5 @@
 # standard imports
 import constants
-from enum import Enum
 
 # wpi imports
 import commands2
@@ -29,12 +28,6 @@ class Grabber(commands2.Subsystem):
         self.mainMotor.configurator.apply(motorConfigs)
 
         self.voltage_req = controls.VoltageOut(0)
-
-        self.states = Enum("States", ["FWD","REV","OFF"])  # type: ignore
-        self.state = self.states.OFF
-
-    def setState(self, state) -> None:
-        self.state = state
 
     @constants.makeCommand
     def FWD(self) -> commands2.Command:
