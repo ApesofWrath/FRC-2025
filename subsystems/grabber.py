@@ -29,14 +29,11 @@ class Grabber(commands2.Subsystem):
 
         self.voltage_req = controls.VoltageOut(0)
 
-    @constants.makeCommand
     def FWD(self) -> commands2.Command:
         self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.FWDvelocity))
 
-    @constants.makeCommand
     def REV(self) -> commands2.Command:
         self.mainMotor.set_control(controls.VoltageOut(-constants.Grabber.REVvelocity))
 
-    @constants.makeCommand
     def OFF(self) -> commands2.Command:
         self.mainMotor.set_control(controls.VoltageOut(0))

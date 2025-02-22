@@ -1,9 +1,7 @@
 # project imports
 import constants
 from subsystems.limelight import Limelight
-from subsystems.elevator import Elevator
-from subsystems.pivoter import Pivoter
-from subsystems.grabber import Grabber
+from subsystems.score import Score
 from subsystems.climb import Climb
 from telemetry import Telemetry
 
@@ -33,9 +31,7 @@ class RobotContainer:
         # The robot's subsystems
         self.robotDrive = constants.TunerConstants.create_drivetrain()
         self.limelight = Limelight(self.robotDrive)
-        self.elevator = Elevator()
-        self.pivoter = Pivoter()
-        self.grabber = Grabber()
+        self.score = Score()
         
         # The robot's auton commands
         NamedCommands.registerCommand("Score L1", cmd.none())
@@ -126,25 +122,18 @@ class RobotContainer:
         # go to the closest alignment target
         self.driverController.povLeft().onTrue(self.limelight.align())
 
-        (self.operatorController.povDown()|self.configController.povDown()).onTrue(self.elevator.setHeight(0))
-        (self.operatorController.povUp()|self.configController.povUp()).onTrue(self.elevator.setHeight(27.3))
+        # intake
+        (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake()).onFalse(self.score.idle())
 
-        self.operatorController.a().onTrue(self.pivoter.setWristAngle(90))
-        self.operatorController.b().onTrue(self.pivoter.setWristAngle(0))
-
-        self.operatorController.x().onTrue(self.pivoter.setArmAngle(90))
-        self.operatorController.y().onTrue(self.pivoter.setArmAngle(40))
-
-        self.operatorController.leftBumper().onTrue(self.grabber.FWD()).onFalse(self.grabber.OFF())
-        self.operatorController.rightBumper().onTrue(self.grabber.REV()).onFalse(self.grabber.OFF())
+        # score at various hights
+        self.operatorController.a().onTrue(self.score.l1()).onFalse(self.score.idle())
+        self.operatorController.b().onTrue(self.score.l2()).onFalse(self.score.idle())
+        self.operatorController.x().onTrue(self.score.l3()).onFalse(self.score.idle())
+        self.operatorController.y().onTrue(self.score.l4()).onFalse(self.score.idle())
 
         # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
         self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
         self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
-        self.configController.y().whileTrue(self.pivoter.wrist_sys_id_quasistatic(SysIdRoutine.Direction.kForward))
-        self.configController.a().whileTrue(self.pivoter.wrist_sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
-        self.configController.b().whileTrue(self.pivoter.wrist_sys_id_dynamic(SysIdRoutine.Direction.kForward))
-        self.configController.x().whileTrue(self.pivoter.wrist_sys_id_dynamic(SysIdRoutine.Direction.kReverse))
 
         if not utils.is_simulation():
             self.logger = Telemetry(constants.Global.max_speed)

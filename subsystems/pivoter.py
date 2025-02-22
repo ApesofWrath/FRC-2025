@@ -5,9 +5,8 @@ import constants
 import commands2
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog
-from wpilib.event import EventLoop, BooleanEvent
-from wpilib import SmartDashboard
-from wpimath.units import degreesToRotations
+
+from wpimath.units import degreesToRotations, degrees
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -125,54 +124,6 @@ class Pivoter(commands2.Subsystem):
             )
         )
 
-        self.events = EventLoop()
-
-        armOutsideElevatorZone = BooleanEvent(
-            self.events,
-            lambda: self.armEncoder.get_position().value_as_double < degreesToRotations(41)
-        ).debounce(0.2)
-        armOutsideElevatorZone.rising().ifHigh(lambda: print(self.wristMotor.configurator.apply(
-            self.wristConfigs.with_software_limit_switch(
-                configs.SoftwareLimitSwitchConfigs()\
-                    .with_forward_soft_limit_threshold(degreesToRotations(91 * constants.Pivoter.Wrist.gearRatio)) \
-                    .with_reverse_soft_limit_threshold(-degreesToRotations(91 * constants.Pivoter.Wrist.gearRatio)) \
-                    .with_forward_soft_limit_enable(True) \
-                    .with_reverse_soft_limit_enable(True)
-            )
-        )))
-        armOutsideElevatorZone.falling().ifHigh(lambda: print(self.wristMotor.configurator.apply(
-            self.wristConfigs.with_software_limit_switch(
-                configs.SoftwareLimitSwitchConfigs()\
-                    .with_forward_soft_limit_threshold(degreesToRotations(2 * constants.Pivoter.Wrist.gearRatio)) \
-                    .with_reverse_soft_limit_threshold(-degreesToRotations(2 * constants.Pivoter.Wrist.gearRatio)) \
-                    .with_forward_soft_limit_enable(True) \
-                    .with_reverse_soft_limit_enable(True)
-            )
-        )))
-
-        grabberAtAngle = BooleanEvent(
-            self.events,
-            lambda: abs(self.wristEncoder.get_position().value_as_double) > degreesToRotations(2.5)
-        ).debounce(0.2)
-        grabberAtAngle.rising().ifHigh(lambda: self.armMotor.configurator.apply(
-            self.armConfigs.with_software_limit_switch(
-                configs.SoftwareLimitSwitchConfigs()\
-                    .with_forward_soft_limit_threshold(degreesToRotations(41)) \
-                    .with_reverse_soft_limit_threshold(degreesToRotations(0)) \
-                    .with_forward_soft_limit_enable(True) \
-                    .with_reverse_soft_limit_enable(True)
-            )
-        ))
-        grabberAtAngle.falling().ifHigh(lambda: self.armMotor.configurator.apply(
-            self.armConfigs.with_software_limit_switch(
-                configs.SoftwareLimitSwitchConfigs()\
-                    .with_forward_soft_limit_threshold(degreesToRotations(180)) \
-                    .with_reverse_soft_limit_threshold(degreesToRotations(0)) \
-                    .with_forward_soft_limit_enable(True) \
-                    .with_reverse_soft_limit_enable(True)
-            )
-        ))
-
         controls.MotionMagicVoltage(0).with_position(degreesToRotations(90))
 
     def arm_sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
@@ -187,19 +138,12 @@ class Pivoter(commands2.Subsystem):
     def wrist_sys_id_dynamic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.wrist_sys_id_routine.dynamic(direction)
 
-    @constants.makeCommand
-    def setArmAngle(self, target) -> None:        
+    def setArmAngle(self, target: degrees) -> None:        
         self.armMotor.set_control(
             controls.MotionMagicVoltage(0).with_position(degreesToRotations(target))
         )
     
-    @constants.makeCommand
-    def setWristAngle(self, target) -> None:        
+    def setWristAngle(self, target: degrees) -> None:        
         self.wristMotor.set_control(
             controls.MotionMagicVoltage(0).with_position(degreesToRotations(target * constants.Pivoter.Wrist.gearRatio))
         )
-
-    def periodic(self) -> None:
-        SmartDashboard.putNumber("armEncoder", self.armEncoder.get_position().value_as_double*360)
-        SmartDashboard.putNumber("wristEncoder", self.wristEncoder.get_position().value_as_double*360)
-        self.events.poll()
