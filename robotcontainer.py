@@ -133,7 +133,7 @@ class RobotContainer:
         self.operatorController.b().onTrue(self.pivoter.setWristAngle(0))
 
         self.operatorController.x().onTrue(self.pivoter.setArmAngle(90))
-        self.operatorController.y().onTrue(self.pivoter.setArmAngle(54.5))
+        self.operatorController.y().onTrue(self.pivoter.setArmAngle(40))
 
         self.operatorController.leftBumper().onTrue(self.grabber.FWD()).onFalse(self.grabber.OFF())
         self.operatorController.rightBumper().onTrue(self.grabber.REV()).onFalse(self.grabber.OFF())

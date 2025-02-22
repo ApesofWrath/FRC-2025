@@ -32,9 +32,9 @@ class Pivoter:
     class Arm:
         id: int = 15
         encoder: int = 18
-        currentLimit = 40
+        currentLimit = 60
         forwardLimit = degreesToRotations(180)
-        reverseLimit = degreesToRotations(0)
+        reverseLimit = 0
         s, v, a, g, p, d = 0.39776, 0.94099, 2.3004, 0.54562, 54.608, 15.134
         acceleration = .125
         velocity = .25
@@ -47,8 +47,8 @@ class Pivoter:
         id: int = 16
         encoder: int = 19
         currentLimit = 10
-        forwardLimit = degreesToRotations(60 * gearRatio)
-        reverseLimit = -degreesToRotations(60 * gearRatio)
+        forwardLimit = 0
+        reverseLimit = 0
         s, v, a, g, p, d = 0.49591, 6.0118, 0.89434, 0, 18.076, 2.7363
         acceleration = .15 * gearRatio
         velocity = .3 * gearRatio
