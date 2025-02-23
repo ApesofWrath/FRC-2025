@@ -120,7 +120,7 @@ class RobotContainer:
 		)
 
         # go to the closest alignment target
-        self.driverController.povLeft().onTrue(self.limelight.align())
+        self.driverController.povUp().onTrue(self.limelight.align())
 
         # intake
         (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake()).onFalse(self.score.idle())
@@ -130,6 +130,11 @@ class RobotContainer:
         self.operatorController.b().onTrue(self.score.l2()).onFalse(self.score.idle())
         self.operatorController.x().onTrue(self.score.l3()).onFalse(self.score.idle())
         self.operatorController.y().onTrue(self.score.l4()).onFalse(self.score.idle())
+
+        # test
+        self.operatorController.povLeft().onTrue(self.score.testArm())
+        self.operatorController.povRight().onTrue(self.score.testElevator())
+        self.operatorController.povDown().onTrue(self.score.idle())
 
         # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
         self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))

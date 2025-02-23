@@ -30,8 +30,8 @@ class PhysicsEngine:
         # ELEVATOR INIT
         self.elevator_gearbox = DCMotor.krakenX60(2)
         self.elevatorMotors = [
-            self.robot.score.elevator.mainMotor.sim_state,
-            self.robot.score.elevator.othrMotor.sim_state
+            self.robot.score.elevator.motor.sim_state,
+            self.robot.score.elevator.follower.sim_state
         ]
 
         self.sim_elevator_model =  sim.DCMotorSim(

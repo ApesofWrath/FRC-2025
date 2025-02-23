@@ -1,7 +1,6 @@
-import math
-
+from dataclasses import dataclass
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
-from wpimath.units import inchesToMeters, degreesToRotations, rotationsToRadians, degreesToRadians
+from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians
 from wpimath import units
 from subsystems.drivetrain import CommandSwerveDrivetrain
 import commands2.cmd as cmd
@@ -12,6 +11,12 @@ def makeCommand(func):
         return cmd.runOnce(lambda: func(*args, **kwargs))
     return cmdFn
 
+@dataclass
+class sysidConfig:
+    stepVoltage: float
+    timeout: float
+    rampRate: float = 1
+
 class Limelight:
     kLimelightHostnames = []#[ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
@@ -19,42 +24,112 @@ class Limelight:
 class Elevator:
     mainMotorId: int = 13
     othrMotorId: int = 14
-    inchPerTurn: units.inches = (8/56) * (45/8) * 2
-    currentLimit = 80
-    forwardLimit = 30/inchPerTurn
-    reverseLimit = 5/inchPerTurn
-    s, v, a, g, p, d = 0.42454, 0.12445, 0.0099014, 0.24291, 7.6082, 0.14139
-    acceleration = 200/inchPerTurn
-    velocity = 60/inchPerTurn
-    jerk = 2000/inchPerTurn
+    inchPerDegree: units.inches = (8/56) * (45/8) * 2 * 360
+    config = configs.TalonFXConfiguration()\
+        .with_motor_output(configs.MotorOutputConfigs() \
+            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+        )\
+        .with_current_limits(configs.CurrentLimitsConfigs() \
+            .with_stator_current_limit_enable(True) \
+            .with_stator_current_limit(80)
+        )\
+        .with_slot0(configs.Slot0Configs() \
+            .with_k_s(0.42454) \
+            .with_k_v(0.12445) \
+            .with_k_a(0.0099014) \
+            .with_k_g(0.24291) \
+            .with_k_p(7.6082) \
+            .with_k_d(0.14139)
+        )\
+        .with_motion_magic(configs.MotionMagicConfigs() \
+            .with_motion_magic_acceleration(200/inchPerDegree) \
+            .with_motion_magic_cruise_velocity(60/inchPerDegree) \
+            .with_motion_magic_jerk(2000/inchPerDegree)
+        )
+    
+    sysidConf = sysidConfig(
+        stepVoltage = 4.0,
+        timeout = 3.5
+    )
 
-class Pivoter:
-    class Arm:
-        id: int = 15
-        encoder: int = 18
-        currentLimit = 60
-        forwardLimit = degreesToRotations(180)
-        reverseLimit = 0
-        s, v, a, g, p, d = 0.39776, 0.94099, 2.3004, 0.54562, 54.608, 15.134
-        acceleration = .125
-        velocity = .25
-        jerk = .25
-        stepVoltage = 5
-        rampVoltage = 1.5
+class Arm:
+    id: int = 15
+    encoder: int = 18
+    config = configs.TalonFXConfiguration()\
+        .with_feedback(configs.FeedbackConfigs()\
+            .with_feedback_remote_sensor_id(encoder) \
+            .with_feedback_sensor_source(signals.FeedbackSensorSourceValue.REMOTE_CANCODER)
+        )\
+        .with_motor_output(configs.MotorOutputConfigs() \
+            .with_neutral_mode(signals.NeutralModeValue.BRAKE) \
+            .with_inverted(signals.InvertedValue.CLOCKWISE_POSITIVE)
+        )\
+        .with_current_limits(configs.CurrentLimitsConfigs() \
+            .with_stator_current_limit_enable(True) \
+            .with_stator_current_limit(60)
+        )\
+        .with_slot0(configs.Slot0Configs() \
+            .with_k_s(0.39776) \
+            .with_k_v(0.94099) \
+            .with_k_a(2.3004) \
+            .with_k_g(0.54562) \
+            .with_k_p(54.608) \
+            .with_k_d(15.134)
+        )\
+        .with_motion_magic(configs.MotionMagicConfigs() \
+            .with_motion_magic_acceleration(8) \
+            .with_motion_magic_cruise_velocity(1.5) \
+            .with_motion_magic_jerk(16)
+        )
+    encoderConfig = configs.CANcoderConfiguration() \
+        .with_magnet_sensor(
+            configs.MagnetSensorConfigs() \
+                .with_magnet_offset(0.679443359375) \
+                .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
+                .with_absolute_sensor_discontinuity_point(1)
+        )
+    
+    sysidConf = sysidConfig(
+        stepVoltage = 5,
+        rampRate = 1.5,
         timeout = 3
-    class Wrist:
-        gearRatio: float = 40/15
-        id: int = 16
-        encoder: int = 19
-        currentLimit = 10
-        forwardLimit = 0
-        reverseLimit = 0
-        s, v, a, g, p, d = 0.49591, 6.0118, 0.89434, 0, 18.076, 2.7363
-        acceleration = .15 * gearRatio
-        velocity = .3 * gearRatio
-        jerk = .3 * gearRatio
-        stepVoltage = 8
+    )
+
+class Wrist:
+    gearRatio: float = 40/15
+    id: int = 16
+    encoder: int = 19
+
+    config = configs.TalonFXConfiguration() \
+        .with_motor_output(configs.MotorOutputConfigs() \
+            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+        )\
+        .with_feedback(configs.FeedbackConfigs() \
+            .with_feedback_remote_sensor_id(encoder) \
+            .with_feedback_sensor_source(signals.FeedbackSensorSourceValue.REMOTE_CANCODER)
+        )\
+        .with_current_limits(configs.CurrentLimitsConfigs() \
+            .with_stator_current_limit_enable(True) \
+            .with_stator_current_limit(40)
+        )\
+        .with_slot0(configs.Slot0Configs() \
+            .with_k_s(0.49591) \
+            .with_k_v(6.0118) \
+            .with_k_a(0.89434) \
+            .with_k_g(0) \
+            .with_k_p(18.076) \
+            .with_k_d(2.7363)
+        )\
+        .with_motion_magic(configs.MotionMagicConfigs() \
+            .with_motion_magic_acceleration(20 * gearRatio) \
+            .with_motion_magic_cruise_velocity(.5 * gearRatio) \
+            .with_motion_magic_jerk(40 * gearRatio)
+        )
+
+    sysidConf = sysidConfig(
+        stepVoltage = 8,
         timeout = 5
+    )
 
 class Grabber:
     id: int = 17
