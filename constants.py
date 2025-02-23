@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from types import UnionType
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
@@ -17,39 +18,52 @@ class sysidConfig:
     timeout: float
     rampRate: float = 1
 
+@dataclass
+class scorePosition:
+    wrist: units.degrees
+    arm: units.degrees
+    elevator: units.inches
+    reefDistance: UnionType[units.inches,None] = None
+
 class Limelight:
     kLimelightHostnames = []#[ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
 
 class scorePositions:
-    class idle:
-        wrist = 0
-        arm = 90
+    idle = scorePosition(
+        wrist = 0,
+        arm = 90,
         elevator = 0
-    class intake:
-        wrist = -90
-        arm = -6.75
+    )
+    intake = scorePosition(
+        wrist = -90,
+        arm = -6.75,
         elevator = 2
-    class l1:
-        wrist = -90
-        arm = 25
-        elevator = 11
-        # Dist From Base of Reef: 8.5 in
-    class l2:
-        wrist = 0
-        arm = 40
-        elevator = 10
-        # Dist From Base of Reef: 0 in
-    class l3:
-        wrist = 0
-        arm = 40
-        elevator = 26
-        # Dist From Base of Reef: 0 in
-    class l4:
-        wrist = 0
-        arm = 22
-        elevator = 58
-        # Dist From Base of Reef: 5.75in
+    )
+    l1 = scorePosition(
+        wrist = -90,
+        arm = 25,
+        elevator = 11,
+        reefDistance = 8.5
+    )
+    l2 = scorePosition(
+        wrist = 0,
+        arm = 40,
+        elevator = 10,
+        reefDistance = 0
+    )
+    l3 = scorePosition(
+        wrist = 0,
+        arm = 40,
+        elevator = 26,
+        reefDistance = 0
+    )
+    l4 = scorePosition(
+        wrist = 0,
+        arm = 22,
+        elevator = 58,
+        reefDistance = 5.75
+    )
 
 class Elevator:
     mainMotorId: int = 13
