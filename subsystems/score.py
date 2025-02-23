@@ -1,6 +1,6 @@
 from wpilib import SmartDashboard
 from wpilib.event import EventLoop, BooleanEvent
-from wpimath.units import degreesToRotations, degrees
+from wpimath.units import degreesToRotations
 import commands2
 
 import constants
@@ -10,36 +10,39 @@ from subsystems.grabber import Grabber
 class Score(commands2.Subsystem):
     def __init__(self):
         self.elevator = PositionalSubsystem(
+            "elevate",
             motorID=constants.Elevator.mainMotorId,
             followerID=constants.Elevator.othrMotorId,
             motorConfig=constants.Elevator.config,
-            conversionRate=constants.Elevator.inchPerDegree,
+            conversionRate=1/constants.Elevator.inchPerDegree,
             sysidConf=constants.Elevator.sysidConf,
             limitWaitingDistance=1/constants.Elevator.inchPerDegree
         )
         self.arm = PositionalSubsystem(
+            "arm",
             motorID=constants.Arm.id,
             motorConfig=constants.Arm.config,
             encoderID=constants.Arm.encoder,
             encoderConfig=constants.Arm.encoderConfig,
             sysidConf=constants.Arm.sysidConf,
-            limitWaitingDistance=degreesToRotations(3),
+            limitWaitingDistance=3,
             initialTarget=90
         )
         self.wrist = PositionalSubsystem(
+            "wrist",
             motorID=constants.Wrist.id,
             motorConfig=constants.Wrist.config,
             conversionRate=constants.Wrist.gearRatio,
             encoderID=constants.Wrist.encoder,
             encoderConfig=0.0,
             sysidConf=constants.Wrist.sysidConf,
-            limitWaitingDistance=degreesToRotations(3)
+            limitWaitingDistance=3,
+            positionSetErrorBounds=5
         )
         self.grabber = Grabber()
 
         self.events = EventLoop()
 
-        # TODO: maybe move all conditions to single-condition events and then compose those events instead of having discrete events with composed conditions
         isArmExtendedFront = lambda: self.arm.encoder.get_position().value_as_double < degreesToRotations(41)
         isArmExtendedBack = lambda: self.arm.encoder.get_position().value_as_double > degreesToRotations(139)
         isElevatorUp = lambda: self.elevator.motor.get_position().value_as_double > 26/degreesToRotations(constants.Elevator.inchPerDegree)
@@ -54,7 +57,7 @@ class Score(commands2.Subsystem):
         disallowArmRetractionBack = (142,187)
         self.arm.limit(allowArmRetraction)
 
-        allowElevatorDecent = (3/constants.Elevator.inchPerDegree,56/constants.Elevator.inchPerDegree)
+        allowElevatorDecent = (1/constants.Elevator.inchPerDegree,56/constants.Elevator.inchPerDegree)
         disallowElevatorDecent = (26/constants.Elevator.inchPerDegree,56/constants.Elevator.inchPerDegree)
         self.elevator.limit(allowElevatorDecent)
 
@@ -87,55 +90,34 @@ class Score(commands2.Subsystem):
         grabberAtAngleAndRisen.rising().ifHigh(lambda: self.elevator.limit(disallowElevatorDecent))
         grabberAtAngleAndRisen.falling().ifHigh(lambda: self.elevator.limit(allowElevatorDecent))
 
-    @constants.makeCommand
-    def idle(self):
-        self.wrist.set(0)
-        self.arm.set(90)
-        self.elevator.set(0)
+    def position(self, position) -> commands2.Command:
+        positionCommand = commands2.ParallelDeadlineGroup(
+            commands2.WaitUntilCommand(lambda: self.arm.inPosition() and self.wrist.inPosition() and self.elevator.inPosition()),
+            commands2.RunCommand(lambda: self.wrist.set(position.wrist)),
+            commands2.RunCommand(lambda: self.arm.set(position.arm)),
+            commands2.RunCommand(lambda: self.elevator.set(position.elevator))
+        )
+        #positionCommand.addRequirements(self)
+        return positionCommand
 
-    @constants.makeCommand
-    def intake(self):
-        self.wrist.set(-90)
-        self.arm.set(-6.75)
-        self.elevator.set(5)
-
-    @constants.makeCommand
-    def l1(self):
-        self.wrist.set(-90)
-        self.arm.set(25)
-        self.elevator.set(11)
-        # Dist From Base of Reef: 8.5 in
-
-    @constants.makeCommand
-    def l2(self):
-        self.wrist.set(0)
-        self.arm.set(40)
-        self.elevator.set(10)
-        # Dist From Base of Reef: 0 in
-
-    @constants.makeCommand
-    def l3(self):
-        self.wrist.set(0)
-        self.arm.set(40)
-        self.elevator.set(26)
-        # Dist From Base of Reef: 0 in
-
-    @constants.makeCommand
-    def l4(self):
-        self.wrist.set(0)
-        self.arm.set(22)
-        self.elevator.set(58)
-        # Dist From Base of Reef: 5.75in
+    def intake(self) -> commands2.Command:
+        intakeCmd = commands2.SequentialCommandGroup(
+            self.position(constants.scorePositions.intake),
+            self.grabber.intake()
+        )
+        intakeCmd.addRequirements(self)
+        return intakeCmd
     
-    @constants.makeCommand
-    def testArm(self):
-        self.arm.set(22)
-    
-    @constants.makeCommand
-    def testElevator(self):
-        self.elevator(10)
+    def score(self, levelPosition) -> commands2.Command:
+        scoreCmd = commands2.SequentialCommandGroup(
+            self.position(levelPosition),
+            self.grabber.outtake()
+        )
+        scoreCmd.addCommands(self)
+        return scoreCmd
 
     def periodic(self) -> None:
         SmartDashboard.putNumber("armEncoder", self.arm.encoder.get_position().value_as_double*360)
         SmartDashboard.putNumber("wristEncoder", self.wrist.encoder.get_position().value_as_double*360)
+        SmartDashboard.putNumber("elevator", self.elevator.motor.get_position().value_as_double*self.elevator.conversionRate)
         self.events.poll()

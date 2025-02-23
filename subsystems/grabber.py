@@ -3,6 +3,7 @@ import constants
 
 # wpi imports
 import commands2
+from wpilib import SmartDashboard
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -29,11 +30,42 @@ class Grabber(commands2.Subsystem):
 
         self.voltage_req = controls.VoltageOut(0)
 
-    def FWD(self) -> commands2.Command:
+    def FWD(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.FWDvelocity))
 
-    def REV(self) -> commands2.Command:
+    def REV(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(-constants.Grabber.REVvelocity))
 
-    def OFF(self) -> commands2.Command:
+    def OFF(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(0))
+
+    def HLD(self) -> None:
+        self.mainMotor.set_control(controls.VoltageOut(0.25))
+
+    def intake(self) -> commands2.Command:
+        intakeCmd = commands2.RunCommand(
+            self.FWD
+        ).andThen(
+            commands2.WaitCommand(.1)
+        ).until(
+            lambda: self.mainMotor.get_torque_current().value_as_double >= 40
+        ).andThen(
+            commands2.cmd.runOnce(self.HLD)
+        )
+        intakeCmd.addRequirements(self)
+        return intakeCmd
+
+    def outtake(self) -> commands2.Command:
+            intakeCmd = commands2.RunCommand(
+                self.REV
+            ).until(
+                # TODO: get torque current values for empty
+                lambda: False
+            ).andThen(
+                commands2.cmd.runOnce(self.OFF)
+            )
+            intakeCmd.addRequirements(self)
+            return intakeCmd
+
+    def periodic(self) -> None:
+        SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)

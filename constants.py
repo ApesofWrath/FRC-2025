@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
-from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians
+from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
 from subsystems.drivetrain import CommandSwerveDrivetrain
 import commands2.cmd as cmd
@@ -21,10 +21,40 @@ class Limelight:
     kLimelightHostnames = []#[ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
     kAlignmentTargets = [ Pose2d(12.3, 5.25, degreesToRadians(-60)) ]
 
+class scorePositions:
+    class idle:
+        wrist = 0
+        arm = 90
+        elevator = 0
+    class intake:
+        wrist = -90
+        arm = -6.75
+        elevator = 2
+    class l1:
+        wrist = -90
+        arm = 25
+        elevator = 11
+        # Dist From Base of Reef: 8.5 in
+    class l2:
+        wrist = 0
+        arm = 40
+        elevator = 10
+        # Dist From Base of Reef: 0 in
+    class l3:
+        wrist = 0
+        arm = 40
+        elevator = 26
+        # Dist From Base of Reef: 0 in
+    class l4:
+        wrist = 0
+        arm = 22
+        elevator = 58
+        # Dist From Base of Reef: 5.75in
+
 class Elevator:
     mainMotorId: int = 13
     othrMotorId: int = 14
-    inchPerDegree: units.inches = (8/56) * (45/8) * 2 * 360
+    inchPerDegree: units.inches = ((8/56) * (45/8) * 2) / 360
     config = configs.TalonFXConfiguration()\
         .with_motor_output(configs.MotorOutputConfigs() \
             .with_neutral_mode(signals.NeutralModeValue.BRAKE)
@@ -42,9 +72,9 @@ class Elevator:
             .with_k_d(0.14139)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(200/inchPerDegree) \
-            .with_motion_magic_cruise_velocity(60/inchPerDegree) \
-            .with_motion_magic_jerk(2000/inchPerDegree)
+            .with_motion_magic_acceleration(degreesToRotations(200/inchPerDegree)) \
+            .with_motion_magic_cruise_velocity(degreesToRotations(60/inchPerDegree)) \
+            .with_motion_magic_jerk(degreesToRotations(2000/inchPerDegree))
         )
     
     sysidConf = sysidConfig(
@@ -113,7 +143,7 @@ class Wrist:
             .with_stator_current_limit(40)
         )\
         .with_slot0(configs.Slot0Configs() \
-            .with_k_s(0.49591) \
+            .with_k_s(0.75) \
             .with_k_v(6.0118) \
             .with_k_a(0.89434) \
             .with_k_g(0) \

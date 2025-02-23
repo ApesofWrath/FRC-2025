@@ -43,6 +43,7 @@ class RobotContainer:
         self.operatorController = commands2.button.CommandXboxController(constants.Global.kOperatorControllerPort)
         self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
+
 		# Setting up bindings for necessary control of the swerve drive platform
         self.drive = (
             swerve.requests.FieldCentric()
@@ -68,77 +69,81 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        # Drive
-        self.robotDrive.setDefaultCommand(
-            # Drivetrain will execute this command periodically
-            self.robotDrive.apply_request(
-                lambda: (
-                    self.drive.with_velocity_x(
-                        -self.driverController.getLeftY()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        -self.driverController.getLeftX()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive left with negative X (left)
-                    .with_rotational_rate(
-                        self.driverController.getRightX()
-                        * constants.Global.max_angular_rate
-                    )  # Drive counterclockwise with X (right)
+        alwaysBindAll = False
+
+        if self.driverController.isConnected() or alwaysBindAll:
+            # Drive
+            self.robotDrive.setDefaultCommand(
+                # Drivetrain will execute this command periodically
+                self.robotDrive.apply_request(
+                    lambda: (
+                        self.drive.with_velocity_x(
+                            -self.driverController.getLeftY()
+                            * constants.Global.max_speed
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                        )  # Drive forward with negative Y (forward)
+                        .with_velocity_y(
+                            -self.driverController.getLeftX()
+                            * constants.Global.max_speed
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                        )  # Drive left with negative X (left)
+                        .with_rotational_rate(
+                            self.driverController.getRightX()
+                            * constants.Global.max_angular_rate
+                        )  # Drive counterclockwise with X (right)
+                    )
                 )
             )
-        )
 
-        # break on triggers
-        (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+            # break on triggers
+            (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
-        # Run SysId routines when holding back and face buttons.
-        # Note that each routine should be run exactly once in a single log.
-        (self.driverController.back() & self.driverController.a()).whileTrue(
-            self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-        )
-        (self.driverController.back() & self.driverController.b()).whileTrue(
-            self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-        )
-        (self.driverController.back() & self.driverController.x()).whileTrue(
-            self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-        )
-        (self.driverController.back() & self.driverController.y()).whileTrue(
-            self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-        )
+            # Run SysId routines when holding back and face buttons.
+            # Note that each routine should be run exactly once in a single log.
+            (self.driverController.back() & self.driverController.a()).whileTrue(
+                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
+            )
+            (self.driverController.back() & self.driverController.b()).whileTrue(
+                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
+            )
+            (self.driverController.back() & self.driverController.x()).whileTrue(
+                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
+            )
+            (self.driverController.back() & self.driverController.y()).whileTrue(
+                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
+            )
 
-        # reset the field-centric heading on start press
-        self.driverController.start().onTrue(
-            self.limelight.runOnce(lambda: self.limelight.pigeon2.set_yaw(0))
-        )
+            # reset the field-centric heading on start press
+            self.driverController.start().onTrue(
+                self.limelight.runOnce(lambda: self.limelight.pigeon2.set_yaw(0))
+            )
 
-        # modules turn toward their zeros
-        self.driverController.back().onTrue(
-            self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
-		)
+            # modules turn toward their zeros
+            self.driverController.back().onTrue(
+                self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
+            )
 
-        # go to the closest alignment target
-        self.driverController.povUp().onTrue(self.limelight.align())
+            # go to the closest alignment target
+            self.driverController.povUp().onTrue(self.limelight.align())
 
-        # intake
-        (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake()).onFalse(self.score.idle())
 
-        # score at various hights
-        self.operatorController.a().onTrue(self.score.l1()).onFalse(self.score.idle())
-        self.operatorController.b().onTrue(self.score.l2()).onFalse(self.score.idle())
-        self.operatorController.x().onTrue(self.score.l3()).onFalse(self.score.idle())
-        self.operatorController.y().onTrue(self.score.l4()).onFalse(self.score.idle())
+        if self.operatorController.isConnected() or alwaysBindAll:
+            # intake
+            (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake())
+            self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
+            self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
-        # test
-        self.operatorController.povLeft().onTrue(self.score.testArm())
-        self.operatorController.povRight().onTrue(self.score.testElevator())
-        self.operatorController.povDown().onTrue(self.score.idle())
+            # score at various hights
+            (self.operatorController.leftTrigger()|self.operatorController.rightTrigger()).onTrue(self.score.score(constants.scorePositions.l1))
+            self.operatorController.a().onTrue(self.score.position(constants.scorePositions.l1)).onFalse(self.score.position(constants.scorePositions.idle))
+            self.operatorController.b().onTrue(self.score.position(constants.scorePositions.l2)).onFalse(self.score.position(constants.scorePositions.idle))
+            self.operatorController.x().onTrue(self.score.position(constants.scorePositions.l3)).onFalse(self.score.position(constants.scorePositions.idle))
+            self.operatorController.y().onTrue(self.score.position(constants.scorePositions.l4)).onFalse(self.score.position(constants.scorePositions.idle))
 
-        # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
-        self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
-        self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
+        if self.configController.isConnected():
+            # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
+            self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
+            self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
 
         if not utils.is_simulation():
             self.logger = Telemetry(constants.Global.max_speed)

@@ -18,10 +18,12 @@ from phoenix6.hardware.cancoder import CANcoder
 class PositionalSubsystem(commands2.Subsystem):
     def __init__(
         self,
+        name: str,
         motorID: int,
         motorConfig: configs.TalonFXConfiguration,
         sysidConf: sysidConfig,
         limitWaitingDistance: float,
+        positionSetErrorBounds: Union[float, None] = None,
         followerID: Union[int, None] = None,
         conversionRate: float = 1,
         encoderID: Union[int, None] = None,
@@ -29,13 +31,16 @@ class PositionalSubsystem(commands2.Subsystem):
         initialTarget: Union[units.inches, units.degrees] = 0
     ):
         super().__init__()
+        self.setName(name)
 
         self.motor = TalonFX(motorID)
         self.configs = motorConfig
         self.motor.configurator.apply(motorConfig)
         self.conversionRate = conversionRate
         self.limits = (-2,2)
-        self.limitWaitingDistance = limitWaitingDistance
+        self.limitWaitingDistance = units.degreesToRotations(limitWaitingDistance)
+        self.positionSetErrorBounds = units.degreesToRotations(positionSetErrorBounds) \
+            if positionSetErrorBounds is not None else self.limitWaitingDistance
 
         if followerID is not None:
             self.follower = TalonFX(followerID)
@@ -79,23 +84,26 @@ class PositionalSubsystem(commands2.Subsystem):
 
     def set(self, target: Union[units.inches,units.degrees]):
         self.target = units.degreesToRotations(target*self.conversionRate)
-        
+
+    def inPosition(self) -> bool:
+        return abs(self.target - self.motor.get_position().value_as_double) <= self.positionSetErrorBounds
 
     def limit(self, limits: Tuple[units.degrees]):
-        self.limits = limits
+        self.limits = (units.degreesToRotations(limits[0]),units.degreesToRotations(limits[1]))
         self.motor.configurator.apply(
             self.configs.with_software_limit_switch(
                 configs.SoftwareLimitSwitchConfigs() \
                     .with_forward_soft_limit_enable(True) \
                     .with_reverse_soft_limit_enable(True) \
-                    .with_forward_soft_limit_threshold(units.degreesToRotations(limits[1])) \
-                    .with_reverse_soft_limit_threshold(units.degreesToRotations(limits[0]))
+                    .with_forward_soft_limit_threshold(limits[1]) \
+                    .with_reverse_soft_limit_threshold(limits[0])
             )
         )
     
     def periodic(self):
         if self.limits[1] > self.target > self.limits[0]:
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(self.target))
+            if not self.inPosition(): print(self.getName(), self.target, self.motor.get_position().value_as_double, self.target - self.motor.get_position().value_as_double, self.limitWaitingDistance)
         else:
             limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
             limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * -(limitTupleIndex * 2 - 1)
