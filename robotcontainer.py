@@ -2,7 +2,7 @@
 import constants
 from subsystems.limelight import Limelight
 from subsystems.score import Score
-from subsystems.climb import Climb
+#from subsystems.climb import Climb
 from telemetry import Telemetry
 
 # commands imports
@@ -43,7 +43,6 @@ class RobotContainer:
         self.operatorController = commands2.button.CommandXboxController(constants.Global.kOperatorControllerPort)
         self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
-
 		# Setting up bindings for necessary control of the swerve drive platform
         self.drive = (
             swerve.requests.FieldCentric()
@@ -72,6 +71,7 @@ class RobotContainer:
         alwaysBindAll = False
 
         if self.driverController.isConnected() or alwaysBindAll:
+            print("Binding driver controller")
             # Drive
             self.robotDrive.setDefaultCommand(
                 # Drivetrain will execute this command periodically
@@ -128,19 +128,24 @@ class RobotContainer:
 
 
         if self.operatorController.isConnected() or alwaysBindAll:
+            print("Binding operator controller")
             # intake
             (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake())
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
-            # score at various hights
+            # score at various heights
             (self.operatorController.leftTrigger()|self.operatorController.rightTrigger()).onTrue(self.score.score(constants.scorePositions.l1))
             self.operatorController.a().onTrue(self.score.position(constants.scorePositions.l1)).onFalse(self.score.position(constants.scorePositions.idle))
             self.operatorController.b().onTrue(self.score.position(constants.scorePositions.l2)).onFalse(self.score.position(constants.scorePositions.idle))
             self.operatorController.x().onTrue(self.score.position(constants.scorePositions.l3)).onFalse(self.score.position(constants.scorePositions.idle))
             self.operatorController.y().onTrue(self.score.position(constants.scorePositions.l4)).onFalse(self.score.position(constants.scorePositions.idle))
 
+            self.operatorController.leftBumper().onTrue(commands2.RunCommand(self.score.elevator.set(20)))
+            self.operatorController.rightBumper().onTrue(commands2.RunCommand(self.score.arm.set(10)))
+
         if self.configController.isConnected():
+            print("Binding config controller")
             # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
             self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
             self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))

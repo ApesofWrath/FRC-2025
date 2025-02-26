@@ -25,7 +25,9 @@ class PositionalSubsystem(commands2.Subsystem):
         limitWaitingDistance: float,
         positionSetErrorBounds: Union[float, None] = None,
         followerID: Union[int, None] = None,
-        conversionRate: float = 1,
+        conversionRate: units.turns = 1/360,
+        # conversionRate is a number such that multiplying it by some external representation will result in the amount of turns necessary to achieve the desired position
+        # and deviding some amount of rotations by it will result in the external representation of the position that amount of rotations will achieve
         encoderID: Union[int, None] = None,
         encoderConfig: Union[configs.CANcoderConfiguration, float, None] = None,
         initialTarget: Union[units.inches, units.degrees] = 0
@@ -37,9 +39,9 @@ class PositionalSubsystem(commands2.Subsystem):
         self.configs = motorConfig
         self.motor.configurator.apply(motorConfig)
         self.conversionRate = conversionRate
-        self.limits = (-2,2)
-        self.limitWaitingDistance = units.degreesToRotations(limitWaitingDistance)
-        self.positionSetErrorBounds = units.degreesToRotations(positionSetErrorBounds) \
+        self.limits: Tuple[units.turns] = (-2,2)
+        self.limitWaitingDistance: units.turns = limitWaitingDistance * self.conversionRate
+        self.positionSetErrorBounds: units.turns = self.conversionRate * positionSetErrorBounds \
             if positionSetErrorBounds is not None else self.limitWaitingDistance
 
         if followerID is not None:
@@ -83,13 +85,14 @@ class PositionalSubsystem(commands2.Subsystem):
         return self.sys_id_routine.dynamic(direction)
 
     def set(self, target: Union[units.inches,units.degrees]):
-        self.target = units.degreesToRotations(target*self.conversionRate)
+        self.target: units.turns = target*self.conversionRate
 
     def inPosition(self) -> bool:
         return abs(self.target - self.motor.get_position().value_as_double) <= self.positionSetErrorBounds
 
     def limit(self, limits: Tuple[units.degrees]):
-        self.limits = (units.degreesToRotations(limits[0]),units.degreesToRotations(limits[1]))
+        self.limits = (limits[0]*self.conversionRate,limits[1]*self.conversionRate)
+        print(self.getName(),self.limits)
         self.motor.configurator.apply(
             self.configs.with_software_limit_switch(
                 configs.SoftwareLimitSwitchConfigs() \
@@ -103,8 +106,9 @@ class PositionalSubsystem(commands2.Subsystem):
     def periodic(self):
         if self.limits[1] > self.target > self.limits[0]:
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(self.target))
-            if not self.inPosition(): print(self.getName(), self.target, self.motor.get_position().value_as_double, self.target - self.motor.get_position().value_as_double, self.limitWaitingDistance)
+            if not self.inPosition() and self.getName() == "elevate":
+                print(self.getName(), self.target, self.motor.get_position().value_as_double, self.target - self.motor.get_position().value_as_double, self.limitWaitingDistance)
         else:
             limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
-            limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * -(limitTupleIndex * 2 - 1)
+            limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(limitedGoal))

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from types import UnionType
-from phoenix6 import CANBus, configs, hardware, signals, swerve, units
+from typing import Union
+from phoenix6 import CANBus, configs, hardware, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
 from subsystems.drivetrain import CommandSwerveDrivetrain
@@ -23,7 +23,7 @@ class scorePosition:
     wrist: units.degrees
     arm: units.degrees
     elevator: units.inches
-    reefDistance: UnionType[units.inches,None] = None
+    reefDistance: Union[units.inches,None] = None
 
 class Limelight:
     kLimelightHostnames = []#[ "limelight-wwdkd", "limelight-jonkler", "limelight-moist", "limelight-jerry" ]
@@ -68,7 +68,7 @@ class scorePositions:
 class Elevator:
     mainMotorId: int = 13
     othrMotorId: int = 14
-    inchPerDegree: units.inches = ((8/56) * (45/8) * 2) / 360
+    turnsPerInch: units.turns = (8/56) * (45/8) * 2
     config = configs.TalonFXConfiguration()\
         .with_motor_output(configs.MotorOutputConfigs() \
             .with_neutral_mode(signals.NeutralModeValue.BRAKE)
@@ -86,9 +86,9 @@ class Elevator:
             .with_k_d(0.14139)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(degreesToRotations(200/inchPerDegree)) \
-            .with_motion_magic_cruise_velocity(degreesToRotations(60/inchPerDegree)) \
-            .with_motion_magic_jerk(degreesToRotations(2000/inchPerDegree))
+            .with_motion_magic_acceleration(degreesToRotations(200/turnsPerInch)) \
+            .with_motion_magic_cruise_velocity(degreesToRotations(60/turnsPerInch)) \
+            .with_motion_magic_jerk(degreesToRotations(2000/turnsPerInch))
         )
     
     sysidConf = sysidConfig(
@@ -140,7 +140,7 @@ class Arm:
     )
 
 class Wrist:
-    gearRatio: float = 40/15
+    gearRatio: float = (40/15)/360
     id: int = 16
     encoder: int = 19
 

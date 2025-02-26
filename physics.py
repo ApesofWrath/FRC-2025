@@ -1,6 +1,5 @@
 # project imports
 from robot import MyRobot
-from subsystems.score import Score
 
 # wpi imports
 import wpilib.simulation as sim
