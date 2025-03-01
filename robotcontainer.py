@@ -141,13 +141,14 @@ class RobotContainer:
             self.operatorController.x().onTrue(self.score.position(constants.scorePositions.l3)).onFalse(self.score.position(constants.scorePositions.idle))
             self.operatorController.y().onTrue(self.score.position(constants.scorePositions.l4)).onFalse(self.score.position(constants.scorePositions.idle))
 
-            self.operatorController.leftBumper().onTrue(commands2.RunCommand(self.score.elevator.set(20)))
-            self.operatorController.rightBumper().onTrue(commands2.RunCommand(self.score.arm.set(10)))
-
         if self.configController.isConnected():
             print("Binding config controller")
             # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
             self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
+            self.configController.a().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
+            self.configController.b().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
+            self.configController.x().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kForward))
+            self.configController.y().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
             self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
 
         if not utils.is_simulation():

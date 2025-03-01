@@ -92,23 +92,21 @@ class PositionalSubsystem(commands2.Subsystem):
 
     def limit(self, limits: Tuple[units.degrees]):
         self.limits = (limits[0]*self.conversionRate,limits[1]*self.conversionRate)
-        print(self.getName(),self.limits)
         self.motor.configurator.apply(
             self.configs.with_software_limit_switch(
                 configs.SoftwareLimitSwitchConfigs() \
                     .with_forward_soft_limit_enable(True) \
                     .with_reverse_soft_limit_enable(True) \
-                    .with_forward_soft_limit_threshold(limits[1]) \
-                    .with_reverse_soft_limit_threshold(limits[0])
+                    .with_forward_soft_limit_threshold(self.limits[1]) \
+                    .with_reverse_soft_limit_threshold(self.limits[0])
             )
         )
     
     def periodic(self):
         if self.limits[1] > self.target > self.limits[0]:
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(self.target))
-            if not self.inPosition() and self.getName() == "elevate":
-                print(self.getName(), self.target, self.motor.get_position().value_as_double, self.target - self.motor.get_position().value_as_double, self.limitWaitingDistance)
         else:
             limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
             limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(limitedGoal))
+        if self.getName() == "arm": print(self.getName(), self.limits)

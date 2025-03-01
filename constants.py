@@ -68,7 +68,7 @@ class scorePositions:
 class Elevator:
     mainMotorId: int = 13
     othrMotorId: int = 14
-    turnsPerInch: units.turns = (8/56) * (45/8) * 2
+    turnsPerInch: units.turns = 1 / ((8/56) * (45/8) * 2)
     config = configs.TalonFXConfiguration()\
         .with_motor_output(configs.MotorOutputConfigs() \
             .with_neutral_mode(signals.NeutralModeValue.BRAKE)
@@ -78,17 +78,17 @@ class Elevator:
             .with_stator_current_limit(80)
         )\
         .with_slot0(configs.Slot0Configs() \
-            .with_k_s(0.42454) \
-            .with_k_v(0.12445) \
-            .with_k_a(0.0099014) \
-            .with_k_g(0.24291) \
+            .with_k_s(0.025325) \
+            .with_k_v(0.13136) \
+            .with_k_a(0.0046553) \
+            .with_k_g(0.58851) \
             .with_k_p(7.6082) \
             .with_k_d(0.14139)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(degreesToRotations(200/turnsPerInch)) \
-            .with_motion_magic_cruise_velocity(degreesToRotations(60/turnsPerInch)) \
-            .with_motion_magic_jerk(degreesToRotations(2000/turnsPerInch))
+            .with_motion_magic_acceleration(200/turnsPerInch) \
+            .with_motion_magic_cruise_velocity(60/turnsPerInch) \
+            .with_motion_magic_jerk(2000/turnsPerInch)
         )
     
     sysidConf = sysidConfig(
@@ -113,12 +113,12 @@ class Arm:
             .with_stator_current_limit(60)
         )\
         .with_slot0(configs.Slot0Configs() \
-            .with_k_s(0.39776) \
-            .with_k_v(0.94099) \
-            .with_k_a(2.3004) \
-            .with_k_g(0.54562) \
-            .with_k_p(54.608) \
-            .with_k_d(15.134)
+            .with_k_s(0.34284) \
+            .with_k_v(5.9659) \
+            .with_k_a(0.5081) \
+            .with_k_g(0.44017) \
+            .with_k_p(122.58) \
+            .with_k_d(22.153)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
             .with_motion_magic_acceleration(8) \
@@ -128,7 +128,7 @@ class Arm:
     encoderConfig = configs.CANcoderConfiguration() \
         .with_magnet_sensor(
             configs.MagnetSensorConfigs() \
-                .with_magnet_offset(0.679443359375) \
+                .with_magnet_offset(-0.059570) \
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )
@@ -140,7 +140,7 @@ class Arm:
     )
 
 class Wrist:
-    gearRatio: float = (40/15)/360
+    gearRatio: float = 40/15
     id: int = 16
     encoder: int = 19
 
