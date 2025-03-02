@@ -6,6 +6,7 @@ from typing import Union, Tuple
 
 # wpilib
 import commands2
+from wpilib import SmartDashboard
 from wpimath import units
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog
@@ -84,11 +85,15 @@ class PositionalSubsystem(commands2.Subsystem):
     def sys_id_dynamic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
         return self.sys_id_routine.dynamic(direction)
 
-    def set(self, target: Union[units.inches,units.degrees]):
-        self.target: units.turns = target*self.conversionRate
+    def set(self, target: Union[units.inches,units.degrees,None]):
+        if target is not None:
+            self.target: units.turns = target*self.conversionRate
+    
+    def get(self, useTurns: bool = False):
+        return self.motor.get_position().value_as_double/(1 if useTurns else self.conversionRate)
 
     def inPosition(self) -> bool:
-        return abs(self.target - self.motor.get_position().value_as_double) <= self.positionSetErrorBounds
+        return abs(self.target - self.get(True)) <= self.positionSetErrorBounds
 
     def limit(self, limits: Tuple[units.degrees]):
         self.limits = (limits[0]*self.conversionRate,limits[1]*self.conversionRate)
@@ -103,10 +108,18 @@ class PositionalSubsystem(commands2.Subsystem):
         )
     
     def periodic(self):
+        limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
+        goal = self.target if self.limits[1] > self.target > self.limits[0] else \
+            self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
+        self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
+        '''
         if self.limits[1] > self.target > self.limits[0]:
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(self.target))
+            target = self.target
         else:
             limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
             limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(limitedGoal))
-        if self.getName() == "arm": print(self.getName(), self.limits)
+            target = limitedGoal
+        '''
+        SmartDashboard.putNumber(self.getName()+"Target",goal/self.conversionRate)

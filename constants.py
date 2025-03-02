@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Self
 from phoenix6 import CANBus, configs, hardware, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
@@ -20,9 +20,9 @@ class sysidConfig:
 
 @dataclass
 class scorePosition:
-    wrist: units.degrees
-    arm: units.degrees
-    elevator: units.inches
+    wrist: Union[units.degrees,None] = None
+    arm: Union[units.degrees,None] = None
+    elevator: Union[units.inches,None] = None
     reefDistance: Union[units.inches,None] = None
 
 class Limelight:
@@ -178,7 +178,8 @@ class Wrist:
 class Grabber:
     id: int = 17
     FWDvelocity: int = 5
-    REVvelocity: int = 1
+    REVvelocity: int = -1
+    HLDvelocity: int = 1
     currentLimit: int = 80
 
 class TunerConstants:

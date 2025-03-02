@@ -1,4 +1,3 @@
-from wpilib import SmartDashboard
 from wpilib.event import EventLoop, BooleanEvent
 from wpimath.units import degreesToRotations
 import commands2
@@ -46,7 +45,7 @@ class Score(commands2.Subsystem):
 
         isArmExtendedFront = lambda: self.arm.encoder.get_position().value_as_double < degreesToRotations(30)  # noqa: E731
         isArmExtendedBack = lambda: self.arm.encoder.get_position().value_as_double > degreesToRotations(150)  # noqa: E731
-        isElevatorUp = lambda: self.elevator.motor.get_position().value_as_double > 26/degreesToRotations(constants.Elevator.turnsPerInch)  # noqa: E731
+        isElevatorUp = lambda: self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch  # noqa: E731
         isGrabberAngled = lambda: abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)  # noqa: E731
 
         allowGrabberRotation = (-91, 91)
@@ -54,7 +53,7 @@ class Score(commands2.Subsystem):
         self.wrist.limit(disallowGrabberRotation)
 
         allowArmRetraction = (-7,95)
-        disallowArmRetractionFront = (-7,38)
+        disallowArmRetractionFront = (-7,35)
         disallowArmRetractionBack = (142,187)
         self.arm.limit(allowArmRetraction)
 
@@ -108,21 +107,27 @@ class Score(commands2.Subsystem):
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
-    
-    def score(self, levelPosition) -> commands2.Command:
-        scoreCmd = commands2.SequentialCommandGroup(
-            self.position(levelPosition),
-            self.grabber.outtake()
+
+    def l1(self) -> commands2.Command:
+        return commands2.SequentialCommandGroup(
+            self.position(constants.scorePositions.l1),
+            self.grabber.outtake(),
+            self.position(constants.scorePositions.idle)
         )
-        scoreCmd.addCommands(self)
-        return scoreCmd
+
+    def l234(self, position: constants.scorePosition) -> commands2.Command:
+        return commands2.SequentialCommandGroup(
+            self.position(constants.scorePosition(elevator = position.elevator)),
+            self.position(position),
+            commands2.ParallelCommandGroup(
+                self.grabber.outtake(False),
+                constants.scorePosition(
+                    wrist = -10,
+                    elevator = self.elevator.get() - 5
+                )
+            ),
+            self.position(constants.scorePositions.idle)
+        )
 
     def periodic(self) -> None:
-        # Put the command schedule on SmartDashboard
-        SmartDashboard.putNumber("armEncoder", self.arm.encoder.get_position().value_as_double/self.arm.conversionRate)
-        SmartDashboard.putNumber("armTarget",self.arm.target/self.arm.conversionRate)
-        SmartDashboard.putNumber("wristEncoder", self.wrist.encoder.get_position().value_as_double/self.wrist.conversionRate)
-        SmartDashboard.putNumber("wristTarget",self.wrist.target/self.wrist.conversionRate)
-        SmartDashboard.putNumber("elevatorEncoder", self.elevator.motor.get_position().value_as_double/self.elevator.conversionRate)
-        SmartDashboard.putNumber("elevatorTarget", self.elevator.target/self.elevator.conversionRate)
         self.events.poll()

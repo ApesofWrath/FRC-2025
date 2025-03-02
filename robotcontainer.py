@@ -14,6 +14,7 @@ from commands2.sysid import SysIdRoutine
 # wpi imports
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
+from wpimath.filter import SlewRateLimiter
 from phoenix6 import swerve, SignalLogger, utils
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
@@ -44,6 +45,9 @@ class RobotContainer:
         self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
 		# Setting up bindings for necessary control of the swerve drive platform
+        self.slewRateX = SlewRateLimiter(1)
+        self.slewRateY = SlewRateLimiter(1)
+        self.slewRateT = SlewRateLimiter(1)
         self.drive = (
             swerve.requests.FieldCentric()
             .with_deadband(constants.Global.max_speed * 0.1)
@@ -68,7 +72,7 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = False
+        alwaysBindAll = True
 
         if self.driverController.isConnected() or alwaysBindAll:
             print("Binding driver controller")
@@ -78,18 +82,19 @@ class RobotContainer:
                 self.robotDrive.apply_request(
                     lambda: (
                         self.drive.with_velocity_x(
-                            -self.driverController.getLeftY()
+                            self.slewRateX.calculate(-self.driverController.getLeftY())
                             * constants.Global.max_speed
                             * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive forward with negative Y (forward)
                         .with_velocity_y(
-                            -self.driverController.getLeftX()
+                            self.slewRateY.calculate(-self.driverController.getLeftX())
                             * constants.Global.max_speed
                             * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive left with negative X (left)
                         .with_rotational_rate(
-                            self.driverController.getRightX()
+                            self.slewRateT.calculate(self.driverController.getRightX())
                             * constants.Global.max_angular_rate
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )
                 )
@@ -135,11 +140,10 @@ class RobotContainer:
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
             # score at various heights
-            (self.operatorController.leftTrigger()|self.operatorController.rightTrigger()).onTrue(self.score.score(constants.scorePositions.l1))
-            self.operatorController.a().onTrue(self.score.position(constants.scorePositions.l1)).onFalse(self.score.position(constants.scorePositions.idle))
-            self.operatorController.b().onTrue(self.score.position(constants.scorePositions.l2)).onFalse(self.score.position(constants.scorePositions.idle))
-            self.operatorController.x().onTrue(self.score.position(constants.scorePositions.l3)).onFalse(self.score.position(constants.scorePositions.idle))
-            self.operatorController.y().onTrue(self.score.position(constants.scorePositions.l4)).onFalse(self.score.position(constants.scorePositions.idle))
+            self.operatorController.a().onTrue(self.score.l1())
+            self.operatorController.b().onTrue(self.score.l234(constants.scorePositions.l2))
+            self.operatorController.x().onTrue(self.score.l234(constants.scorePositions.l3))
+            self.operatorController.y().onTrue(self.score.l234(constants.scorePositions.l4))
 
         if self.configController.isConnected():
             print("Binding config controller")
