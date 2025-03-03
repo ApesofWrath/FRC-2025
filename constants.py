@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from typing import Union, Self
-from phoenix6 import CANBus, configs, hardware, signals, swerve
+from typing import Union
+from phoenix6 import CANBus, configs, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
-from subsystems.drivetrain import CommandSwerveDrivetrain
 import commands2.cmd as cmd
-from wpimath.geometry import Pose2d, Transform2d
+from wpimath.geometry import Transform2d
 from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
+from math import pi
 
 def makeCommand(func):
     def cmdFn(*args, **kwargs):
@@ -30,7 +30,7 @@ class Limelight:
     kGyroId = 20
     kLimelightHostnames = [ "limelight-wwdkd", "limelight-jonkler", "limelight-moist" ]
 
-    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(.5,0,math.pi)) for id in list(range(6,12))+list(range(17,23)) }
+    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(.5,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
     class precise:
         move_p = 2

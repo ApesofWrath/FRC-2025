@@ -1,5 +1,6 @@
 # project imports
 import constants
+from subsystems.drivetrain import CommandSwerveDrivetrain
 from subsystems.limelight import Limelight
 from subsystems.score import Score
 #from subsystems.climb import Climb
@@ -15,7 +16,7 @@ from commands2.sysid import SysIdRoutine
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.filter import SlewRateLimiter
-from phoenix6 import swerve, SignalLogger, utils
+from phoenix6 import swerve, SignalLogger, utils, hardware
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
 class RobotContainer:
@@ -81,26 +82,31 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        # Drive
-        self.robotDrive.setDefaultCommand(
-            # Drivetrain will execute this command periodically
-            self.robotDrive.apply_request(
-                lambda: (
-                    self.drive.with_velocity_x(
-                        -self.driverController.getLeftY()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        -self.driverController.getLeftX()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive left with negative X (left)
-                    .with_rotational_rate(
-                        self.driverController.getRightX()
-                        * constants.Global.max_angular_rate
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive counterclockwise with X (right)
+
+        alwaysBindAll = False
+
+        if self.driverController.isConnected() or alwaysBindAll:
+            # Drive
+            self.robotDrive.setDefaultCommand(
+                # Drivetrain will execute this command periodically
+                self.robotDrive.apply_request(
+                    lambda: (
+                        self.drive.with_velocity_x(
+                            -self.driverController.getLeftY()
+                            * constants.Global.max_speed
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                        )  # Drive forward with negative Y (forward)
+                        .with_velocity_y(
+                            -self.driverController.getLeftX()
+                            * constants.Global.max_speed
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                        )  # Drive left with negative X (left)
+                        .with_rotational_rate(
+                            self.driverController.getRightX()
+                            * constants.Global.max_angular_rate
+                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                        )  # Drive counterclockwise with X (right)
+                    )
                 )
             )
 

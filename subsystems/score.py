@@ -159,7 +159,6 @@ class Score(commands2.Subsystem):
                     )
                 ),
             ),
-            #commands2.WaitCommand(3),
             commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","returning to position")),
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
