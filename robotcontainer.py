@@ -30,7 +30,15 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
-        self.robotDrive = constants.TunerConstants.create_drivetrain()
+        self.robotDrive =  CommandSwerveDrivetrain(
+            hardware.TalonFX,
+            hardware.TalonFX,
+            hardware.CANcoder,
+            constants.TunerConstants.drivetrain_constants,
+            [ constants.TunerConstants.front_left, constants.TunerConstants.front_right, constants.TunerConstants.back_left, constants.TunerConstants.back_right ],
+        )
+        #self.turntable = Turntable()
+        #self.spinner = Spinner()
         self.limelight = Limelight(self.robotDrive)
         self.score = Score()
         
@@ -60,6 +68,7 @@ class RobotContainer:
         )
 
         # Configure the button bindings
+
         self.configureButtonBindings()
 
         # Build an auto chooser. This will use Commands.none() as the default option.
@@ -72,31 +81,26 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = False
-
-        if self.driverController.isConnected() or alwaysBindAll:
-            print("Binding driver controller")
-            # Drive
-            self.robotDrive.setDefaultCommand(
-                # Drivetrain will execute this command periodically
-                self.robotDrive.apply_request(
-                    lambda: (
-                        self.drive.with_velocity_x(
-                            self.slewRateX.calculate(-self.driverController.getLeftY())
-                            * constants.Global.max_speed
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                        )  # Drive forward with negative Y (forward)
-                        .with_velocity_y(
-                            self.slewRateY.calculate(-self.driverController.getLeftX())
-                            * constants.Global.max_speed
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                        )  # Drive left with negative X (left)
-                        .with_rotational_rate(
-                            self.slewRateT.calculate(self.driverController.getRightX())
-                            * constants.Global.max_angular_rate
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                        )  # Drive counterclockwise with X (right)
-                    )
+        # Drive
+        self.robotDrive.setDefaultCommand(
+            # Drivetrain will execute this command periodically
+            self.robotDrive.apply_request(
+                lambda: (
+                    self.drive.with_velocity_x(
+                        -self.driverController.getLeftY()
+                        * constants.Global.max_speed
+                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                    )  # Drive forward with negative Y (forward)
+                    .with_velocity_y(
+                        -self.driverController.getLeftX()
+                        * constants.Global.max_speed
+                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                    )  # Drive left with negative X (left)
+                    .with_rotational_rate(
+                        self.driverController.getRightX()
+                        * constants.Global.max_angular_rate
+                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                    )  # Drive counterclockwise with X (right)
                 )
             )
 
@@ -128,8 +132,9 @@ class RobotContainer:
                 self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
             )
 
-            # go to the closest alignment target
-            self.driverController.povUp().onTrue(self.limelight.align())
+        # go to the closest alignment target
+        self.driverController.povUp().whileTrue(self.limelight.pathfind())
+        self.driverController.povDown().whileTrue(self.limelight.align())
 
 
         if self.operatorController.isConnected() or alwaysBindAll:
