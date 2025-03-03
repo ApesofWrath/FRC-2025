@@ -72,7 +72,7 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = True
+        alwaysBindAll = False
 
         if self.driverController.isConnected() or alwaysBindAll:
             print("Binding driver controller")
@@ -138,6 +138,8 @@ class RobotContainer:
             (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake())
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
+
+            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle)))
 
             # score at various heights
             self.operatorController.a().onTrue(self.score.l1())

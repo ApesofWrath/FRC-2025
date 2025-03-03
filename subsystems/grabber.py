@@ -43,12 +43,24 @@ class Grabber(commands2.Subsystem):
         self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.HLDvelocity))
 
     def intake(self) -> commands2.Command:
-        intakeCmd = commands2.RunCommand(
-            self.FWD
+        intakeCmd = commands2.cmd.runOnce(
+            self.FWD # TODO: this sucks use a rolling buffer with collections.deque
+        ).andThen(
+            commands2.cmd.runOnce(lambda: print("went forward"))
+        ).andThen(
+            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 30)
+        ).andThen(
+            commands2.cmd.runOnce(lambda: print("pass thresh 1"))
+        ).andThen(
+            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double <= 15)
+        ).andThen(
+            commands2.cmd.runOnce(lambda: print("pass thresh 2"))
+        ).andThen(
+            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 20)
+        ).andThen(
+            commands2.cmd.runOnce(lambda: print("passed threshhold 3"))
         ).andThen(
             commands2.WaitCommand(.1)
-        ).until(
-            lambda: self.mainMotor.get_torque_current().value_as_double >= 20
         ).andThen(
             commands2.cmd.runOnce(self.HLD)
         )
@@ -56,10 +68,14 @@ class Grabber(commands2.Subsystem):
         return intakeCmd
 
     def outtake(self, check = True) -> commands2.Command:
-            intakeCmd = commands2.RunCommand(
+            intakeCmd = commands2.cmd.runOnce(
                 self.REV
+            ).andThen(
+                commands2.cmd.runOnce(lambda: print("going back"))
             ).until(
                 lambda: -2 < self.mainMotor.get_torque_current().value_as_double < -10 or (not check)
+            ).andThen(
+                commands2.cmd.runOnce(lambda: print("passed threshhold"))
             ).andThen(
                 commands2.cmd.runOnce(self.OFF)
             )

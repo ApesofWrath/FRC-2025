@@ -30,7 +30,8 @@ class PositionalSubsystem(commands2.Subsystem):
         # conversionRate is a number such that multiplying it by some external representation will result in the amount of turns necessary to achieve the desired position
         # and deviding some amount of rotations by it will result in the external representation of the position that amount of rotations will achieve
         encoderID: Union[int, None] = None,
-        encoderConfig: Union[configs.CANcoderConfiguration, float, None] = None,
+        encoderConfig: Union[configs.CANcoderConfiguration, None] = None,
+        initialPosition: Union[float, None] = None,
         initialTarget: Union[units.inches, units.degrees] = 0
     ):
         super().__init__()
@@ -52,13 +53,14 @@ class PositionalSubsystem(commands2.Subsystem):
         
         if encoderID is not None:
             self.encoder = CANcoder(encoderID)
+            if initialPosition is not None:
+                self.encoder.set_position(initialPosition)
+        
+        if initialPosition is not None:
+            self.motor.set_position(initialPosition)
 
-        if type(encoderConfig) is configs.CANcoderConfiguration:
-            self.encoder.configurator.apply(encoderConfig)
-        else:
-            self.motor.set_position(0)
-            if type(encoderConfig) is float:
-                self.encoder.set_position(0)
+        if type(encoderConfig) is float:
+            self.encoder.set_position(0)
         
         self.voltage_req = controls.VoltageOut(0)
         self.voltage_req.enable_foc = True
@@ -112,14 +114,7 @@ class PositionalSubsystem(commands2.Subsystem):
         goal = self.target if self.limits[1] > self.target > self.limits[0] else \
             self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
         self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
-        '''
-        if self.limits[1] > self.target > self.limits[0]:
-            self.motor.set_control(controls.MotionMagicVoltage(0).with_position(self.target))
-            target = self.target
-        else:
-            limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
-            limitedGoal = self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
-            self.motor.set_control(controls.MotionMagicVoltage(0).with_position(limitedGoal))
-            target = limitedGoal
-        '''
-        SmartDashboard.putNumber(self.getName()+"Target",goal/self.conversionRate)
+
+        SmartDashboard.putNumber(self.getName()+"Target",self.target/self.conversionRate)
+        SmartDashboard.putNumber(self.getName()+"LimTarget",goal/self.conversionRate)
+        SmartDashboard.putNumber(self.getName()+"Position",self.get())

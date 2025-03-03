@@ -1,5 +1,6 @@
 from wpilib.event import EventLoop, BooleanEvent
 from wpimath.units import degreesToRotations
+from wpilib import SmartDashboard
 import commands2
 
 import constants
@@ -34,7 +35,8 @@ class Score(commands2.Subsystem):
             motorConfig=constants.Wrist.config,
             conversionRate=constants.Wrist.gearRatio/360,
             encoderID=constants.Wrist.encoder,
-            encoderConfig=0.0,
+            initialPosition=0.0,
+            encoderConfig=constants.Wrist.encoderConfig,
             sysidConf=constants.Wrist.sysidConf,
             limitWaitingDistance=3,
             positionSetErrorBounds=5
@@ -43,12 +45,16 @@ class Score(commands2.Subsystem):
 
         self.events = EventLoop()
 
-        isArmExtendedFront = lambda: self.arm.encoder.get_position().value_as_double < degreesToRotations(30)  # noqa: E731
-        isArmExtendedBack = lambda: self.arm.encoder.get_position().value_as_double > degreesToRotations(150)  # noqa: E731
+        isArmExtendedFront = lambda: self.arm.get() <= 30  # noqa: E731
+        isArmExtendedBack = lambda: self.arm.get() >= 150  # noqa: E731
+        isArmSomewhatExtendedFront = lambda: 70 > self.arm.get() > 30  # noqa: E731
+        isArmSomewhatExtendedBack = lambda: 110 < self.arm.get() < 150  # noqa: E731
         isElevatorUp = lambda: self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch  # noqa: E731
         isGrabberAngled = lambda: abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)  # noqa: E731
 
         allowGrabberRotation = (-91, 91)
+        somewhatAllowGrabberRotationFront = (-30, 2)
+        somewhatAllowGrabberRotationBack = (-2, 30)
         disallowGrabberRotation = (-2, 2)
         self.wrist.limit(disallowGrabberRotation)
 
@@ -57,28 +63,45 @@ class Score(commands2.Subsystem):
         disallowArmRetractionBack = (142,187)
         self.arm.limit(allowArmRetraction)
 
-        allowElevatorDecent = (.99,50)
-        disallowElevatorDecent = (26,50)
+        allowElevatorDecent = (.99,55)
+        disallowElevatorDecent = (26,55)
         self.elevator.limit(allowElevatorDecent)
 
         armOutsideElevatorZone = BooleanEvent(
             self.events,
             lambda: isArmExtendedFront() or isArmExtendedBack() or isElevatorUp()
-        ).debounce(0.2)
+        ).debounce(.05)
         armOutsideElevatorZone.rising().ifHigh(lambda: self.wrist.limit(allowGrabberRotation))
-        armOutsideElevatorZone.falling().ifHigh(lambda: self.wrist.limit(disallowGrabberRotation))
+
+        armSomewhatOutsideElevatorZoneFront = BooleanEvent(
+            self.events,
+            lambda: isArmSomewhatExtendedFront()
+        ).debounce(.05)
+        armSomewhatOutsideElevatorZoneFront.rising().ifHigh(lambda: self.wrist.limit(somewhatAllowGrabberRotationFront))
+
+        armSomewhatOutsideElevatorZoneBack = BooleanEvent(
+            self.events,
+            lambda: isArmSomewhatExtendedBack()
+        ).debounce(.05)
+        armSomewhatOutsideElevatorZoneBack.rising().ifHigh(lambda: self.wrist.limit(somewhatAllowGrabberRotationBack))
+
+        armInsideElevatorZone = BooleanEvent(
+            self.events,
+            lambda: not (isArmExtendedBack() or isArmExtendedFront() or isArmSomewhatExtendedBack() or isArmSomewhatExtendedFront() or isElevatorUp())
+        ).debounce(.05)
+        armInsideElevatorZone.rising().ifHigh(lambda: self.wrist.limit(disallowGrabberRotation))
 
         grabberAtAngleInFront = BooleanEvent(
             self.events,
             lambda: isGrabberAngled() and isArmExtendedFront()
-        ).debounce(0.2)
+        ).debounce(.05)
         grabberAtAngleInFront.rising().ifHigh(lambda: self.arm.limit(disallowArmRetractionFront))
         grabberAtAngleInFront.falling().ifHigh(lambda: self.arm.limit(allowArmRetraction))
 
         grabberAtAngleInBack = BooleanEvent(
             self.events,
             lambda: isGrabberAngled() and isArmExtendedBack()
-        ).debounce(0.2)
+        ).debounce(.05)
         grabberAtAngleInBack.rising().ifHigh(lambda: self.arm.limit(disallowArmRetractionBack))
         grabberAtAngleInBack.falling().ifHigh(lambda: self.arm.limit(allowArmRetraction))
 
@@ -89,6 +112,8 @@ class Score(commands2.Subsystem):
         ).debounce(0.2)
         grabberAtAngleAndRisen.rising().ifHigh(lambda: self.elevator.limit(disallowElevatorDecent))
         grabberAtAngleAndRisen.falling().ifHigh(lambda: self.elevator.limit(allowElevatorDecent))
+
+        SmartDashboard.putString("scoreStatus","nothing")
 
     def position(self, position: constants.scorePosition) -> commands2.Command:
         positionCommand = commands2.ParallelDeadlineGroup(
@@ -103,7 +128,8 @@ class Score(commands2.Subsystem):
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
             self.position(constants.scorePositions.intake),
-            self.grabber.intake()
+            self.grabber.intake(),
+            self.position(constants.scorePositions.idle)
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
@@ -117,16 +143,27 @@ class Score(commands2.Subsystem):
 
     def l234(self, position: constants.scorePosition) -> commands2.Command:
         return commands2.SequentialCommandGroup(
+            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","elevator up")),
             self.position(constants.scorePosition(elevator = position.elevator)),
+            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","rest of pose")),
             self.position(position),
-            commands2.ParallelCommandGroup(
-                self.grabber.outtake(False),
-                constants.scorePosition(
-                    wrist = -10,
-                    elevator = self.elevator.get() - 5
-                )
+            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","outtake")),
+            self.grabber.outtake(False).deadlineWith(
+                self.position(
+                    constants.scorePosition(
+                        wrist = -20,
+                        elevator = position.elevator - 3
+                    ) if position is not constants.scorePositions.l4 else \
+                    constants.scorePosition(
+                        elevator = position.elevator - 5
+                    )
+                ),
             ),
-            self.position(constants.scorePositions.idle)
+            #commands2.WaitCommand(3),
+            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","returning to position")),
+            self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
+            self.position(constants.scorePositions.idle),
+            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","done")),
         )
 
     def periodic(self) -> None:

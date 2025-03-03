@@ -33,7 +33,7 @@ class scorePositions:
     idle = scorePosition(
         wrist = 0,
         arm = 90,
-        elevator = 0
+        elevator = 1
     )
     intake = scorePosition(
         wrist = -90,
@@ -44,25 +44,25 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 8.5
+        reefDistance = 19.5
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
-        elevator = 10,
-        reefDistance = 0
+        elevator = 4,
+        reefDistance = 19.5
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
-        elevator = 26,
-        reefDistance = 0
+        elevator = 21,
+        reefDistance = 19.5
     )
     l4 = scorePosition(
         wrist = 0,
-        arm = 22,
-        elevator = 58,
-        reefDistance = 5.75
+        arm = 25,
+        elevator = 54,
+        reefDistance = 26.25
     )
 
 class Elevator:
@@ -90,7 +90,7 @@ class Elevator:
             .with_motion_magic_cruise_velocity(60/turnsPerInch) \
             .with_motion_magic_jerk(2000/turnsPerInch)
         )
-    
+
     sysidConf = sysidConfig(
         stepVoltage = 4.0,
         timeout = 3.5
@@ -132,7 +132,7 @@ class Arm:
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )
-    
+
     sysidConf = sysidConfig(
         stepVoltage = 5,
         rampRate = 1.5,
@@ -175,11 +175,19 @@ class Wrist:
         timeout = 5
     )
 
+    encoderConfig = configs.CANcoderConfiguration() \
+        .with_magnet_sensor(
+            configs.MagnetSensorConfigs() \
+                .with_magnet_offset(0.21728515625) \
+                .with_sensor_direction(signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE) \
+                .with_absolute_sensor_discontinuity_point(0.5)
+        )
+
 class Grabber:
     id: int = 17
-    FWDvelocity: int = 5
-    REVvelocity: int = -1
-    HLDvelocity: int = 1
+    FWDvelocity: int = 8
+    REVvelocity: int = -5
+    HLDvelocity: int = 4
     currentLimit: int = 80
 
 class TunerConstants:
