@@ -188,7 +188,7 @@ class Grabber:
     FWDvelocity: int = 8
     REVvelocity: int = -5
     HLDvelocity: int = 4
-    currentLimit: int = 80
+    currentLimit: int = 30
 
 class TunerConstants:
     """

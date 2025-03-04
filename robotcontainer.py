@@ -45,9 +45,9 @@ class RobotContainer:
         self.configController = commands2.button.CommandXboxController(constants.Global.kConfigControllerPort)
 
 		# Setting up bindings for necessary control of the swerve drive platform
-        self.slewRateX = SlewRateLimiter(1)
-        self.slewRateY = SlewRateLimiter(1)
-        self.slewRateT = SlewRateLimiter(1)
+        self.slewRateX = SlewRateLimiter(2, -3)
+        self.slewRateY = SlewRateLimiter(2, -3)
+        self.slewRateT = SlewRateLimiter(2, -3)
         self.drive = (
             swerve.requests.FieldCentric()
             .with_deadband(constants.Global.max_speed * 0.1)
