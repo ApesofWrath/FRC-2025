@@ -35,9 +35,11 @@ class RobotContainer:
         self.score = Score()
         
         # The robot's auton commands
-        NamedCommands.registerCommand("Score L1", cmd.none())
-        NamedCommands.registerCommand("ground pickup (coral)", cmd.none())
-        NamedCommands.registerCommand("Get coral from station", cmd.none())
+        NamedCommands.registerCommand("intake", self.score.intake())
+        NamedCommands.registerCommand("l1", self.score.l1())
+        NamedCommands.registerCommand("l2", self.score.l234(constants.scorePositions.l2))
+        NamedCommands.registerCommand("l3", self.score.l234(constants.scorePositions.l3))
+        NamedCommands.registerCommand("l4", self.score.l234(constants.scorePositions.l4))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
