@@ -2,7 +2,8 @@
 import constants
 from subsystems.limelight import Limelight
 from subsystems.score import Score
-#from subsystems.climb import Climb
+from subsystems.climb import Climb
+from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
 
 # commands imports
@@ -15,7 +16,8 @@ from commands2.sysid import SysIdRoutine
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.filter import SlewRateLimiter
-from phoenix6 import swerve, SignalLogger, utils
+from wpimath.units import rotationsToRadians
+from phoenix6 import swerve, SignalLogger, utils, hardware
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
 class RobotContainer:
@@ -30,7 +32,15 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
-        self.robotDrive = constants.TunerConstants.create_drivetrain()
+        self.robotDrive =  CommandSwerveDrivetrain(
+            hardware.TalonFX,
+            hardware.TalonFX,
+            hardware.CANcoder,
+            constants.TunerConstants.drivetrain_constants,
+            [ constants.TunerConstants.front_left, constants.TunerConstants.front_right, constants.TunerConstants.back_left, constants.TunerConstants.back_right ],
+        )
+        #self.turntable = Turntable()
+        #self.spinner = Spinner()
         self.limelight = Limelight(self.robotDrive)
         self.score = Score()
         
@@ -54,7 +64,7 @@ class RobotContainer:
             swerve.requests.FieldCentric()
             .with_deadband(constants.Global.max_speed * 0.1)
             .with_rotational_deadband(
-                constants.Global.max_angular_rate * 0.1
+                rotationsToRadians(0.75) * 0.1
             )  # Add a 10% deadband
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
@@ -132,8 +142,8 @@ class RobotContainer:
             )
 
             # go to the closest alignment target
-            self.driverController.povUp().onTrue(self.limelight.align())
-
+            self.driverController.povUp().whileTrue(self.limelight.pathfind())
+            self.driverController.povDown().whileTrue(self.limelight.align())
 
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
