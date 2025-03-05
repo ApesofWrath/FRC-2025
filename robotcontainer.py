@@ -60,6 +60,7 @@ class RobotContainer:
         )
 
         # Configure the button bindings
+
         self.configureButtonBindings()
 
         # Build an auto chooser. This will use Commands.none() as the default option.

@@ -5,7 +5,8 @@ from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, 
 from wpimath import units
 from subsystems.drivetrain import CommandSwerveDrivetrain
 import commands2.cmd as cmd
-from wpimath.geometry import Pose2d
+from wpimath.geometry import Pose2d, Transform2d
+from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
 
 def makeCommand(func):
     def cmdFn(*args, **kwargs):
@@ -404,29 +405,9 @@ class TunerConstants:
         _back_right_encoder_inverted,
     )
 
-    @classmethod
-    def create_drivetrain(clazz) -> CommandSwerveDrivetrain:
-        """
-        Creates a CommandSwerveDrivetrain instance.
-        This should only be called once in your robot program.
-        """
-        return CommandSwerveDrivetrain(
-            hardware.TalonFX,
-            hardware.TalonFX,
-            hardware.CANcoder,
-            clazz.drivetrain_constants,
-            [
-                clazz.front_left,
-                clazz.front_right,
-                clazz.back_left,
-                clazz.back_right,
-            ],
-        )
-
 class Global:
     kDriverControllerPort = 0
     kOperatorControllerPort = 1
     kConfigControllerPort = 2
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
     break_speed_mul = 0.1
-    max_angular_rate = rotationsToRadians(0.75)  # 3/4 of a rotation per second max angular velocity
