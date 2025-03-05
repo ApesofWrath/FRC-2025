@@ -10,7 +10,6 @@ from typing import Callable
 from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Rotation2d
-from constants import TunerConstants
 
 class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
     """

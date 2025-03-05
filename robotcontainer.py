@@ -1,13 +1,8 @@
 # project imports
 import constants
 from subsystems.limelight import Limelight
-<<<<<<<<< Temporary merge branch 1
-from subsystems.spinner import Spinner
-from subsystems.turntable import Turntable
-from subsystems.drivetrain import CommandSwerveDrivetrain
-=========
 from subsystems.score import Score
-#from subsystems.climb import Climb
+from subsystems.climb import Climb
 from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
 
@@ -21,6 +16,7 @@ from commands2.sysid import SysIdRoutine
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.filter import SlewRateLimiter
+from wpimath.units import rotationsToRadians
 from phoenix6 import swerve, SignalLogger, utils, hardware
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
@@ -45,9 +41,6 @@ class RobotContainer:
         )
         #self.turntable = Turntable()
         #self.spinner = Spinner()
-=========
-        self.robotDrive = constants.TunerConstants.create_drivetrain()
->>>>>>>>> Temporary merge branch 2
         self.limelight = Limelight(self.robotDrive)
         self.score = Score()
         
@@ -69,7 +62,7 @@ class RobotContainer:
             swerve.requests.FieldCentric()
             .with_deadband(constants.Global.max_speed * 0.1)
             .with_rotational_deadband(
-                constants.Global.max_angular_rate * 0.1
+                rotationsToRadians(0.75) * 0.1
             )  # Add a 10% deadband
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
@@ -90,28 +83,6 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-<<<<<<<<< Temporary merge branch 1
-        # Drive
-        self.robotDrive.setDefaultCommand(
-            # Drivetrain will execute this command periodically
-            self.robotDrive.apply_request(
-                lambda: (
-                    self.drive.with_velocity_x(
-                        -self.driverController.getLeftY()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        -self.driverController.getLeftX()
-                        * constants.Global.max_speed
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive left with negative X (left)
-                    .with_rotational_rate(
-                        self.driverController.getRightX()
-                        * constants.Global.max_angular_rate
-                        * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
-                    )  # Drive counterclockwise with X (right)
-=========
         alwaysBindAll = False
 
         if self.driverController.isConnected() or alwaysBindAll:
@@ -168,15 +139,9 @@ class RobotContainer:
                 self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
             )
 
-<<<<<<<<< Temporary merge branch 1
-        # go to the closest alignment target
-        self.driverController.povUp().whileTrue(self.limelight.pathfind())
-        self.driverController.povDown().whileTrue(self.limelight.align())
-=========
             # go to the closest alignment target
-            self.driverController.povUp().onTrue(self.limelight.align())
->>>>>>>>> Temporary merge branch 2
-
+            self.driverController.povUp().whileTrue(self.limelight.pathfind())
+            self.driverController.povDown().whileTrue(self.limelight.align())
 
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
