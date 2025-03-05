@@ -3,6 +3,7 @@ import constants
 from subsystems.limelight import Limelight
 from subsystems.score import Score
 #from subsystems.climb import Climb
+from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
 
 # commands imports
@@ -15,7 +16,7 @@ from commands2.sysid import SysIdRoutine
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.filter import SlewRateLimiter
-from phoenix6 import swerve, SignalLogger, utils
+from phoenix6 import swerve, SignalLogger, utils, hardware
 from pathplannerlib.auto import AutoBuilder, NamedCommands
 
 class RobotContainer:
@@ -30,7 +31,13 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
-        self.robotDrive = constants.TunerConstants.create_drivetrain()
+        self.robotDrive =  CommandSwerveDrivetrain(
+            hardware.TalonFX,
+            hardware.TalonFX,
+            hardware.CANcoder,
+            constants.TunerConstants.drivetrain_constants,
+            [ constants.TunerConstants.front_left, constants.TunerConstants.front_right, constants.TunerConstants.back_left, constants.TunerConstants.back_right ],
+        )
         self.limelight = Limelight(self.robotDrive)
         self.score = Score()
         
