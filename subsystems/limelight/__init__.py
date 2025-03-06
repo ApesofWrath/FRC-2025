@@ -1,13 +1,12 @@
-import commands2, math
+import concurrent.futures
+
+import commands2
 from phoenix6 import utils, swerve
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard, Field2d
 from pathplannerlib.path import PathConstraints
 from pathplannerlib.auto import AutoBuilder
 from wpilib import SmartDashboard, Field2d, DriverStation
-from wpimath.geometry import Pose2d, Transform2d
-from wpimath.units import degreesToRadians
-from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
 
 import constants
 from subsystems.limelight.limelight import LimelightHelpers
@@ -19,7 +18,9 @@ class Limelight(commands2.Subsystem):
         self.drivetrain = drive
         self.pigeon2 = Pigeon2(constants.Limelight.kGyroId, "Drivetrain")
         self.pigeon2.set_yaw((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)
-        self.getDelta()
+
+        self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
+        #self.getDelta()
 
         for id,target in constants.Limelight.kAlignmentTargets.items():
             field = Field2d()
@@ -28,8 +29,10 @@ class Limelight(commands2.Subsystem):
 
         for name in constants.Limelight.kLimelightHostnames:
             LimelightHelpers.set_imu_mode(name,3)
-	# thank you Steel Ridge/team 6343
-    def insert_limelight_measurements(self, LLHostname: str) -> None:
+
+        self.tpe = concurrent.futures.ThreadPoolExecutor()
+
+    def fetch_limelight_measurements(self, LLHostname: str) -> None:
         """
         Add vision measurement to MegaTag2
         """
@@ -38,21 +41,15 @@ class Limelight(commands2.Subsystem):
             LLHostname,
             self.pigeon2.get_yaw().value,
             0,0,0,0,0
-#            self.pigeon2.get_angular_velocity_z_world(False).value,
-#            self.pigeon2.get_pitch(False).value,
-#            self.pigeon2.get_angular_velocity_y_world(False).value,
-#            self.pigeon2.get_roll(False).value,
-#            self.pigeon2.get_angular_velocity_x_world(False).value
         )
 
         # get botpose estimate with origin on blue side of field
         mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(LLHostname)
         
         # if we are spinning slower than 720 deg/sec and we see tags
-        if abs(self.pigeon2.get_angular_velocity_z_world().value) <= 720 and mega_tag2.tag_count > 0:
+        if mega_tag2.tag_count > 0:
             # set and add vision measurement
-            self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
-            self.drivetrain.add_vision_measurement(mega_tag2.pose, utils.fpga_to_current_time(mega_tag2.timestamp_seconds))
+            return mega_tag2
 
     def pathfind(self) -> commands2.Command:
         return AutoBuilder.pathfindToPose(
@@ -77,7 +74,12 @@ class Limelight(commands2.Subsystem):
         )
 
     def periodic(self) -> None:
-        for llhn in constants.Limelight.kLimelightHostnames:
-            self.insert_limelight_measurements(llhn)
+        if self.pigeon2.get_angular_velocity_z_world(False).value > 720:
+            return
+
+        futures = [ self.tpe.submit(self.fetch_limelight_measurements, hn) for hn in constants.Limelight.kLimelightHostnames ]
+        for future in concurrent.futures.as_completed(futures):
+            estimate = future.result()
+            if estimate and estimate.tag_count > 0:
+                self.drivetrain.add_vision_measurement(estimate.pose, utils.fpga_to_current_time(estimate.timestamp_seconds))
         #self.getDelta()
-        SmartDashboard.putNumber("gyro", self.pigeon2.get_yaw(False).value%360)

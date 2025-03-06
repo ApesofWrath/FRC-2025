@@ -79,6 +79,7 @@ class PositionalSubsystem(commands2.Subsystem):
             )
         )
 
+        self.prevGoal = None
         self.set(initialTarget)
 
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
@@ -97,24 +98,31 @@ class PositionalSubsystem(commands2.Subsystem):
     def inPosition(self) -> bool:
         return abs(self.target - self.get(True)) <= self.positionSetErrorBounds
 
-    def limit(self, limits: Tuple[units.degrees]):
-        self.limits = (limits[0]*self.conversionRate,limits[1]*self.conversionRate)
-        self.motor.configurator.apply(
-            self.configs.with_software_limit_switch(
-                configs.SoftwareLimitSwitchConfigs() \
-                    .with_forward_soft_limit_enable(True) \
-                    .with_reverse_soft_limit_enable(True) \
-                    .with_forward_soft_limit_threshold(self.limits[1]) \
-                    .with_reverse_soft_limit_threshold(self.limits[0])
-            )
-        )
+    def limit(self, newLimits: Tuple[units.degrees]):
+        self.limits = (newLimits[0]*self.conversionRate,newLimits[1]*self.conversionRate)
+        # if newLimits == self.limits:
+        #     return
+        # self.limits = newLimits
+#        self.motor.configurator.apply(
+#            self.configs.with_software_limit_switch(
+#                configs.SoftwareLimitSwitchConfigs() \
+#                    .with_forward_soft_limit_enable(True) \
+#                    .with_reverse_soft_limit_enable(True) \
+#                    .with_forward_soft_limit_threshold(self.limits[1]) \
+#                    .with_reverse_soft_limit_threshold(self.limits[0])
+#            )
+#        )
     
     def periodic(self):
         limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
         goal = self.target if self.limits[1] > self.target > self.limits[0] else \
             self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
-        self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
+
+        if goal != self.prevGoal:
+            print("ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
+            self.prevGoal = goal
+            self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
 
         SmartDashboard.putNumber(self.getName()+"Target",self.target/self.conversionRate)
         SmartDashboard.putNumber(self.getName()+"LimTarget",goal/self.conversionRate)
-        SmartDashboard.putNumber(self.getName()+"Position",self.get())
+        # SmartDashboard.putNumber(self.getName()+"Position",self.get())
