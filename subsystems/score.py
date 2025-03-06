@@ -45,13 +45,6 @@ class Score(commands2.Subsystem):
 
         self.events = EventLoop()
 
-        isArmExtendedFront = lambda: self.arm.get() <= 30  # noqa: E731
-        isArmExtendedBack = lambda: self.arm.get() >= 150  # noqa: E731
-        isArmSomewhatExtendedFront = lambda: 70 > self.arm.get() > 30  # noqa: E731
-        isArmSomewhatExtendedBack = lambda: 110 < self.arm.get() < 150  # noqa: E731
-        isElevatorUp = lambda: self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch  # noqa: E731
-        isGrabberAngled = lambda: abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)  # noqa: E731
-
         allowGrabberRotation = (-91, 91)
         somewhatAllowGrabberRotationFront = (-30, 2)
         somewhatAllowGrabberRotationBack = (-2, 30)
@@ -67,40 +60,46 @@ class Score(commands2.Subsystem):
         disallowElevatorDecent = (26,55)
         self.elevator.limit(allowElevatorDecent)
 
+        self.isArmExtendedFront = False
+        self.isArmExtendedBack = False
+        self.isArmSomewhatExtendedFront = False
+        self.isArmSomewhatExtendedBack = False
+        self.isElevatorUp = False
+        self.isGrabberAngled = False
+
         armOutsideElevatorZone = BooleanEvent(
             self.events,
-            lambda: isArmExtendedFront() or isArmExtendedBack() or isElevatorUp()
-        ).debounce(.05)
+            lambda: self.isArmExtendedFront or self.isArmExtendedBack or self.isElevatorUp).debounce(.05)
         armOutsideElevatorZone.rising().ifHigh(lambda: self.wrist.limit(allowGrabberRotation))
 
         armSomewhatOutsideElevatorZoneFront = BooleanEvent(
             self.events,
-            lambda: isArmSomewhatExtendedFront()
+            lambda: self.isArmSomewhatExtendedFront
         ).debounce(.05)
         armSomewhatOutsideElevatorZoneFront.rising().ifHigh(lambda: self.wrist.limit(somewhatAllowGrabberRotationFront))
 
         armSomewhatOutsideElevatorZoneBack = BooleanEvent(
             self.events,
-            lambda: isArmSomewhatExtendedBack()
+            lambda: self.isArmSomewhatExtendedBack
         ).debounce(.05)
         armSomewhatOutsideElevatorZoneBack.rising().ifHigh(lambda: self.wrist.limit(somewhatAllowGrabberRotationBack))
 
         armInsideElevatorZone = BooleanEvent(
             self.events,
-            lambda: not (isArmExtendedBack() or isArmExtendedFront() or isArmSomewhatExtendedBack() or isArmSomewhatExtendedFront() or isElevatorUp())
+            lambda: not (self.isArmExtendedBack or self.isArmExtendedFront or self.isArmSomewhatExtendedBack or self.isArmSomewhatExtendedFront or self.isElevatorUp)
         ).debounce(.05)
         armInsideElevatorZone.rising().ifHigh(lambda: self.wrist.limit(disallowGrabberRotation))
 
         grabberAtAngleInFront = BooleanEvent(
             self.events,
-            lambda: isGrabberAngled() and isArmExtendedFront()
+            lambda: self.isGrabberAngled and self.isArmExtendedFront
         ).debounce(.05)
         grabberAtAngleInFront.rising().ifHigh(lambda: self.arm.limit(disallowArmRetractionFront))
         grabberAtAngleInFront.falling().ifHigh(lambda: self.arm.limit(allowArmRetraction))
 
         grabberAtAngleInBack = BooleanEvent(
             self.events,
-            lambda: isGrabberAngled() and isArmExtendedBack()
+            lambda: self.isGrabberAngled and self.isArmExtendedBack
         ).debounce(.05)
         grabberAtAngleInBack.rising().ifHigh(lambda: self.arm.limit(disallowArmRetractionBack))
         grabberAtAngleInBack.falling().ifHigh(lambda: self.arm.limit(allowArmRetraction))
@@ -108,7 +107,7 @@ class Score(commands2.Subsystem):
         grabberAtAngleAndRisen = BooleanEvent(
             # problem state. avoid.
             self.events,
-            lambda: isGrabberAngled() and not (isArmExtendedBack() or isArmExtendedFront()) and isElevatorUp()
+            lambda: self.isGrabberAngled and not (self.isArmExtendedBack or self.isArmExtendedFront) and self.isElevatorUp
         ).debounce(0.2)
         grabberAtAngleAndRisen.rising().ifHigh(lambda: self.elevator.limit(disallowElevatorDecent))
         grabberAtAngleAndRisen.falling().ifHigh(lambda: self.elevator.limit(allowElevatorDecent))
@@ -127,8 +126,8 @@ class Score(commands2.Subsystem):
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
-            self.position(constants.scorePositions(arm=35)),
-            self.position(constants.scorePositions(wrist=constants.scorePositions.intake.wrist)),
+            self.position(constants.scorePosition(arm=35)),
+            self.position(constants.scorePosition(wrist=constants.scorePositions.intake.wrist)),
             self.position(constants.scorePositions.intake),
             self.grabber.intake(),
             self.position(constants.scorePositions.idle)
@@ -168,4 +167,11 @@ class Score(commands2.Subsystem):
         )
 
     def periodic(self) -> None:
+        armStatusValue = self.arm.get()
+        self.isArmExtendedFront = armStatusValue <= 30
+        self.isArmExtendedBack = armStatusValue >= 150
+        self.isArmSomewhatExtendedFront = 70 > armStatusValue > 30
+        self.isArmSomewhatExtendedBack = 110 < armStatusValue < 150
+        self.isElevatorUp = self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch
+        self.isGrabberAngled = abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)
         self.events.poll()

@@ -17,8 +17,8 @@ class Limelight(commands2.Subsystem):
     def __init__(self, drive: Drivetrain):
         super().__init__()
         self.drivetrain = drive
-        self.pigeon2 = Pigeon2(constants.Limelight.kGyroId)
-        self.pigeon2.set_yaw((DriverStation.getAlliance() == DriverStation.Alliance.kRed) * 180)
+        self.pigeon2 = Pigeon2(constants.Limelight.kGyroId, "Drivetrain")
+        self.pigeon2.set_yaw((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)
         self.getDelta()
 
         for id,target in constants.Limelight.kAlignmentTargets.items():
@@ -26,6 +26,8 @@ class Limelight(commands2.Subsystem):
             field.setRobotPose(target)
             SmartDashboard.putData("alignTarget "+str(id), field)
 
+        for name in constants.Limelight.kLimelightHostnames:
+            LimelightHelpers.set_imu_mode(name,3)
 	# thank you Steel Ridge/team 6343
     def insert_limelight_measurements(self, LLHostname: str) -> None:
         """
@@ -35,11 +37,12 @@ class Limelight(commands2.Subsystem):
         LimelightHelpers.set_robot_orientation(
             LLHostname,
             self.pigeon2.get_yaw().value,
-            self.pigeon2.get_angular_velocity_z_world().value,
-            self.pigeon2.get_pitch().value,
-            self.pigeon2.get_angular_velocity_y_world().value,
-            self.pigeon2.get_roll().value,
-            self.pigeon2.get_angular_velocity_x_world().value
+            0,0,0,0,0
+#            self.pigeon2.get_angular_velocity_z_world(False).value,
+#            self.pigeon2.get_pitch(False).value,
+#            self.pigeon2.get_angular_velocity_y_world(False).value,
+#            self.pigeon2.get_roll(False).value,
+#            self.pigeon2.get_angular_velocity_x_world(False).value
         )
 
         # get botpose estimate with origin on blue side of field
@@ -76,5 +79,5 @@ class Limelight(commands2.Subsystem):
     def periodic(self) -> None:
         for llhn in constants.Limelight.kLimelightHostnames:
             self.insert_limelight_measurements(llhn)
-        self.getDelta()
-        SmartDashboard.putNumber("gyro", self.pigeon2.get_yaw().value%360)
+        #self.getDelta()
+        SmartDashboard.putNumber("gyro", self.pigeon2.get_yaw(False).value%360)
