@@ -39,8 +39,6 @@ class RobotContainer:
             constants.TunerConstants.drivetrain_constants,
             [ constants.TunerConstants.front_left, constants.TunerConstants.front_right, constants.TunerConstants.back_left, constants.TunerConstants.back_right ],
         )
-        #self.turntable = Turntable()
-        #self.spinner = Spinner()
         self.limelight = Limelight(self.robotDrive)
         self.score = Score()
         
@@ -70,7 +68,6 @@ class RobotContainer:
         )
 
         # Configure the button bindings
-
         self.configureButtonBindings()
 
         # Build an auto chooser. This will use Commands.none() as the default option.
@@ -93,17 +90,20 @@ class RobotContainer:
                 self.robotDrive.apply_request(
                     lambda: (
                         self.drive.with_velocity_x(
-                            self.slewRateX.calculate(-self.driverController.getLeftY())
+                            #self.slewRateX.calculate(-self.driverController.getLeftY())
+                            -self.driverController.getLeftY()
                             * constants.Global.max_speed
                             * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive forward with negative Y (forward)
                         .with_velocity_y(
-                            self.slewRateY.calculate(-self.driverController.getLeftX())
+                            #self.slewRateY.calculate(-self.driverController.getLeftX())
+                            -self.driverController.getLeftX()
                             * constants.Global.max_speed
                             * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive left with negative X (left)
                         .with_rotational_rate(
-                            self.slewRateT.calculate(self.driverController.getRightX())
+                            #self.slewRateT.calculate(self.driverController.getRightX())
+                            self.driverController.getRightX()
                             * constants.Global.max_angular_rate
                             * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)

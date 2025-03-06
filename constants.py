@@ -29,7 +29,7 @@ class scorePosition:
 
 class Limelight:
     kGyroId = 20
-    kLimelightHostnames = [ "limelight-wwdkd", "limelight-jonkler", "limelight-moist" ]
+    kLimelightHostnames = [ "limelight-foc", "limelight-boc" ]
 
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(.5,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
@@ -419,4 +419,5 @@ class Global:
     kOperatorControllerPort = 1
     kConfigControllerPort = 2
     max_speed = TunerConstants.speed_at_12_volts # desired top speed
+    max_angular_rate = rotationsToRadians(0.25)
     break_speed_mul = 0.1
