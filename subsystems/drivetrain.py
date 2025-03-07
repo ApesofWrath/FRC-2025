@@ -169,7 +169,8 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         if utils.is_simulation():
             self._start_sim_thread()
         self._apply_robot_speeds = swerve.requests.ApplyRobotSpeeds()
-        self._configure_auto_builder()
+        if not AutoBuilder.isConfigured():
+            self._configure_auto_builder()
 
     def apply_request(
         self, request: Callable[[], swerve.requests.SwerveRequest]

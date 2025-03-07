@@ -3,6 +3,8 @@ import constants
 from subsystems.limelight import Limelight
 from subsystems.score import Score
 from subsystems.climb import Climb
+from subsystems.positionalSubsystem import PositionalSubsystem
+from subsystems.grabber import Grabber
 from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
 
@@ -39,10 +41,48 @@ class RobotContainer:
             constants.TunerConstants.drivetrain_constants,
             [ constants.TunerConstants.front_left, constants.TunerConstants.front_right, constants.TunerConstants.back_left, constants.TunerConstants.back_right ],
         )
-        #self.turntable = Turntable()
-        #self.spinner = Spinner()
+
+        self.elevator = PositionalSubsystem(
+            "elevate",
+            motorID=constants.Elevator.mainMotorId,
+            followerID=constants.Elevator.othrMotorId,
+            motorConfig=constants.Elevator.config,
+            conversionRate=constants.Elevator.turnsPerInch,
+            sysidConf=constants.Elevator.sysidConf,
+            initialTarget=1,
+            limitWaitingDistance=1
+        )
+        self.arm = PositionalSubsystem(
+            "arm",
+            motorID=constants.Arm.id,
+            motorConfig=constants.Arm.config,
+            encoderID=constants.Arm.encoder,
+            encoderConfig=constants.Arm.encoderConfig,
+            sysidConf=constants.Arm.sysidConf,
+            limitWaitingDistance=3,
+            initialTarget=90
+        )
+        self.wrist = PositionalSubsystem(
+            "wrist",
+            motorID=constants.Wrist.id,
+            motorConfig=constants.Wrist.config,
+            conversionRate=constants.Wrist.gearRatio/360,
+            encoderID=constants.Wrist.encoder,
+            initialPosition=0.0,
+            encoderConfig=constants.Wrist.encoderConfig,
+            sysidConf=constants.Wrist.sysidConf,
+            limitWaitingDistance=3,
+            positionSetErrorBounds=5
+        )
+        self.grabber = Grabber()
+
         self.limelight = Limelight(self.robotDrive)
-        self.score = Score()
+        self.score = Score(
+            elevator=self.elevator,
+            arm=self.arm,
+            wrist=self.wrist,
+            grabber=self.grabber
+        )
         
         # The robot's auton commands
         NamedCommands.registerCommand("intake", self.score.intake())
@@ -72,7 +112,6 @@ class RobotContainer:
         )
 
         # Configure the button bindings
-
         self.configureButtonBindings()
 
         # Build an auto chooser. This will use Commands.none() as the default option.
@@ -95,19 +134,22 @@ class RobotContainer:
                 self.robotDrive.apply_request(
                     lambda: (
                         self.drive.with_velocity_x(
-                            self.slewRateX.calculate(-self.driverController.getLeftY())
+                            #self.slewRateX.calculate(-self.driverController.getLeftY())
+                            -self.driverController.getLeftY()
                             * constants.Global.max_speed
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive forward with negative Y (forward)
                         .with_velocity_y(
-                            self.slewRateY.calculate(-self.driverController.getLeftX())
+                            #self.slewRateY.calculate(-self.driverController.getLeftX())
+                            -self.driverController.getLeftX()
                             * constants.Global.max_speed
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive left with negative X (left)
                         .with_rotational_rate(
-                            self.slewRateT.calculate(self.driverController.getRightX())
+                            #self.slewRateT.calculate(self.driverController.getRightX())
+                            self.driverController.getRightX()
                             * constants.Global.max_angular_rate
-                            * max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )
                 )
@@ -116,20 +158,20 @@ class RobotContainer:
             # break on triggers
             (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
-            # Run SysId routines when holding back and face buttons.
-            # Note that each routine should be run exactly once in a single log.
-            (self.driverController.back() & self.driverController.a()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.back() & self.driverController.b()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-            )
-            (self.driverController.back() & self.driverController.x()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.back() & self.driverController.y()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-            )
+#            # Run SysId routines when holding back and face buttons.
+#            # Note that each routine should be run exactly once in a single log.
+#            (self.driverController.back() & self.driverController.a()).whileTrue(
+#                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
+#            )
+#            (self.driverController.back() & self.driverController.b()).whileTrue(
+#                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
+#            )
+#            (self.driverController.back() & self.driverController.x()).whileTrue(
+#                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
+#            )
+#            (self.driverController.back() & self.driverController.y()).whileTrue(
+#                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
+#            )
 
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
