@@ -1,78 +1,48 @@
 # standard imports
-import constants
+from constants import Climb as const
 
 # wpi imports
 import commands2
-from commands2.sysid import SysIdRoutine
-from wpilib.sysid import SysIdRoutineLog
-from wpimath import units
+from wpilib import Servo
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
-from phoenix6 import SignalLogger, controls, configs, signals
+from phoenix6 import controls, configs, signals
 
 class Climb(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
 
-        self.mainMotor = TalonFX(constants.Climb.mainMotorId)
+        self.motor = TalonFX(const.id)
+        self.motor.set_position(0)
 
-        self.mainMotor.set_position(0)
+        self.motor.configurator.apply(
+            configs.TalonFXConfiguration()\
+            .with_motor_output(
+                configs.MotorOutputConfigs() \
+                    .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            ) \
+            .with_current_limits(
+                configs.CurrentLimitsConfigs() \
+                    .with_stator_current_limit_enable(True) \
+                    .with_stator_current_limit(const.currentLimit)
+            )
+        )
+        self.motor.set_position(0)
 
-        motorConfigs = configs.TalonFXConfiguration()
-
-        motorConfigs.motor_output = configs.MotorOutputConfigs() \
-            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
-
-        motorConfigs.current_limits = configs.CurrentLimitsConfigs() \
-            .with_stator_current_limit_enable(True) \
-            .with_stator_current_limit(None)
-
-        motorConfigs.software_limit_switch = configs.SoftwareLimitSwitchConfigs() \
-            .with_forward_soft_limit_enable(True) \
-            .with_reverse_soft_limit_enable(True) \
-            .with_forward_soft_limit_threshold(None) \
-            .with_reverse_soft_limit_threshold(None)
-
-        # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
-        motorConfigs.slot0 = configs.Slot0Configs() \
-            .with_k_s(None) \
-            .with_k_v(None) \
-            .with_k_a(None) \
-            .with_k_g(None) \
-            .with_k_p(None) \
-            .with_k_d(None)
-
-        motorConfigs.motion_magic = configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(None) \
-            .with_motion_magic_cruise_velocity(None) \
-            .with_motion_magic_jerk(None)
-
-        self.mainMotor.configurator.apply(motorConfigs)
+        self.servo = Servo(const.servoChannel)
+        self.servo.set(1)
 
         self.voltage_req = controls.VoltageOut(0)
 
-        self.sys_id_routine = SysIdRoutine(
-            SysIdRoutine.Config(
-                stepVoltage = None,
-                recordState = lambda state: SignalLogger.write_string("state", SysIdRoutineLog.stateEnumToString(state)),
-                timeout = None
-            ),
-            SysIdRoutine.Mechanism(
-                lambda volts: self.mainMotor.set_control(self.voltage_req.with_output(volts)),
-                lambda log: None,
-                self
-            )
-        )
+        # start in and engadged(?)
+        # unengadge servo and go out when the operator presses a button
+        # engadge servo and go back in when the operator presses a diferent button
 
-    def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
-        return self.sys_id_routine.quasistatic(direction)
-
-    def sys_id_dynamic(self, direction: SysIdRoutine.Direction) -> commands2.Command:
-        return self.sys_id_routine.dynamic(direction)
-
-    @constants.makeCommand
-    def setHeight(self, target: units.inches) -> None:
-        self.mainMotor.set_control(
-            controls.MotionMagicVoltage(0).with_position(target / constants.Climb.inchPerTurn)
+    def move(self, engadgeServo: bool, voltage: float, target: float):
+        return commands2.SequentialCommandGroup(
+            commands2.cmd.runOnce(lambda: self.servo.set(engadgeServo)),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(voltage))),
+            commands2.WaitUntilCommand(lambda: self.motor.get_position().value_as_double > target),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0)))
         )
