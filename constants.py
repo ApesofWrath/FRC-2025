@@ -269,13 +269,13 @@ class TunerConstants:
 
     # Theoretical free speed (m/s) at 12 V applied output;
     # This needs to be tuned to your individual robot
-    speed_at_12_volts: units.meters_per_second = 3.92
+    speed_at_12_volts: units.meters_per_second = 4.73
 
     # Every 1 rotation of the azimuth results in _couple_ratio drive motor turns;
     # This may need to be tuned to your individual robot
     _couple_ratio = 3.5714285714285716
 
-    _drive_gear_ratio = 8.142857142857142
+    _drive_gear_ratio = 6.746031746031747
     _steer_gear_ratio = 21.428571428571427
     _wheel_radius: units.meters = inchesToMeters(2)
 
@@ -322,12 +322,11 @@ class TunerConstants:
         .with_drive_friction_voltage(_drive_friction_voltage)
     )
 
-    # TODO: re-zero the modules
     # Front Left
     _front_left_drive_motor_id = 3
     _front_left_steer_motor_id = 4
     _front_left_encoder_id = 10
-    _front_left_encoder_offset = -0.06591796875
+    _front_left_encoder_offset = -0.075439453125
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
@@ -338,7 +337,7 @@ class TunerConstants:
     _front_right_drive_motor_id = 7
     _front_right_steer_motor_id = 8
     _front_right_encoder_id = 12
-    _front_right_encoder_offset = 0.3544921875
+    _front_right_encoder_offset = 0.356689453125
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
@@ -349,7 +348,7 @@ class TunerConstants:
     _back_left_drive_motor_id = 1
     _back_left_steer_motor_id = 2
     _back_left_encoder_id = 9
-    _back_left_encoder_offset = 0.3193359375
+    _back_left_encoder_offset = 0.416259765625
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
@@ -360,7 +359,7 @@ class TunerConstants:
     _back_right_drive_motor_id = 5
     _back_right_steer_motor_id = 6
     _back_right_encoder_id = 11
-    _back_right_encoder_offset = -0.226318359375
+    _back_right_encoder_offset = -0.228515625
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 

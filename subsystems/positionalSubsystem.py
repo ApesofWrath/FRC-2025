@@ -112,6 +112,7 @@ class PositionalSubsystem(commands2.Subsystem):
 #                    .with_reverse_soft_limit_threshold(self.limits[0])
 #            )
 #        )
+        # dont like this
     
     def periodic(self):
         limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
@@ -119,7 +120,6 @@ class PositionalSubsystem(commands2.Subsystem):
             self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
 
         if goal != self.prevGoal:
-            print("ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss")
             self.prevGoal = goal
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
 
