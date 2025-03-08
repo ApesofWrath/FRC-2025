@@ -9,12 +9,6 @@
           "data": {
             "pathName": "Step 1 "
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Score L1"
-          }
         }
       ]
     }

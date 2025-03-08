@@ -11,33 +11,15 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Score L1"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Step 2.2"
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "ground pickup (coral)"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Step 3.2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Score L1"
           }
         }
       ]

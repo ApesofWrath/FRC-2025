@@ -19,6 +19,18 @@
       "/SmartDashboard/Module 3": "Mechanism2d",
       "/SmartDashboard/Score": "Mechanism2d",
       "/SmartDashboard/alignTarget (12.3,5.25)": "Field2d",
+      "/SmartDashboard/alignTarget 10": "Field2d",
+      "/SmartDashboard/alignTarget 11": "Field2d",
+      "/SmartDashboard/alignTarget 17": "Field2d",
+      "/SmartDashboard/alignTarget 18": "Field2d",
+      "/SmartDashboard/alignTarget 19": "Field2d",
+      "/SmartDashboard/alignTarget 20": "Field2d",
+      "/SmartDashboard/alignTarget 21": "Field2d",
+      "/SmartDashboard/alignTarget 22": "Field2d",
+      "/SmartDashboard/alignTarget 6": "Field2d",
+      "/SmartDashboard/alignTarget 7": "Field2d",
+      "/SmartDashboard/alignTarget 8": "Field2d",
+      "/SmartDashboard/alignTarget 9": "Field2d",
       "/SmartDashboard/odo_raw": "Field2d"
     },
     "windows": {
