@@ -85,11 +85,10 @@ class RobotContainer:
         )
         
         # The robot's auton commands
-        NamedCommands.registerCommand("intake", self.score.intake())
-        NamedCommands.registerCommand("l1", self.score.l1())
-        NamedCommands.registerCommand("l2", self.score.l234(constants.scorePositions.l2))
-        NamedCommands.registerCommand("l3", self.score.l234(constants.scorePositions.l3))
-        NamedCommands.registerCommand("l4", self.score.l234(constants.scorePositions.l4))
+        NamedCommands.registerCommand("Score L1", self.score.l1())
+        NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2))
+        NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
+        NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -137,19 +136,19 @@ class RobotContainer:
                             #self.slewRateX.calculate(-self.driverController.getLeftY())
                             -self.driverController.getLeftY()
                             * constants.Global.max_speed
-                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive forward with negative Y (forward)
                         .with_velocity_y(
                             #self.slewRateY.calculate(-self.driverController.getLeftX())
                             -self.driverController.getLeftX()
                             * constants.Global.max_speed
-                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive left with negative X (left)
                         .with_rotational_rate(
                             #self.slewRateT.calculate(self.driverController.getRightX())
                             self.driverController.getRightX()
                             * constants.Global.max_angular_rate
-                            #* max((self.driverController.leftBumper() | self.driverController.rightBumper()).negate().getAsBoolean(),constants.Global.break_speed_mul)
+                            * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )
                 )
@@ -157,6 +156,8 @@ class RobotContainer:
 
             # break on triggers
             (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+            # slow on bumpers
+            (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
 #            # Run SysId routines when holding back and face buttons.
 #            # Note that each routine should be run exactly once in a single log.

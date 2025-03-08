@@ -1,3 +1,5 @@
+from constants import makeCommand
+
 from commands2 import Command, Subsystem
 from commands2.sysid import SysIdRoutine
 import math
@@ -80,6 +82,8 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
             self, drive_motor_type, steer_motor_type, encoder_type,
             drivetrain_constants, modules
         )
+
+        self.slow = False
 
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0
@@ -171,6 +175,10 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         self._apply_robot_speeds = swerve.requests.ApplyRobotSpeeds()
         if not AutoBuilder.isConfigured():
             self._configure_auto_builder()
+
+    @makeCommand
+    def slowly(self, do: bool):
+        self.slow = do
 
     def apply_request(
         self, request: Callable[[], swerve.requests.SwerveRequest]

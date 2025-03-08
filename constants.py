@@ -3,7 +3,6 @@ from typing import Union
 from phoenix6 import CANBus, configs, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
 from wpimath import units
-from subsystems.drivetrain import CommandSwerveDrivetrain
 import commands2.cmd as cmd
 from wpimath.geometry import Transform2d
 from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
@@ -323,7 +322,7 @@ class TunerConstants:
         .with_drive_friction_voltage(_drive_friction_voltage)
     )
 
-
+    # TODO: re-zero the modules
     # Front Left
     _front_left_drive_motor_id = 3
     _front_left_steer_motor_id = 4
