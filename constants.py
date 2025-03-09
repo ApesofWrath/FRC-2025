@@ -200,13 +200,13 @@ class Grabber:
     currentLimit: int = 30
 
 class Climb:
-    id: int = 17
+    id: int = 21
     servoChannel: int = 1
-    currentLimit: int = None
-    unspoolVoltage: int = None
-    unspoolTarget: int = None
-    climbVoltage: int = None
-    climbTarget: int = None
+    currentLimit: int = 80
+    unspoolVoltage: int = 3
+    unspoolTarget: int = 90.6
+    climbVoltage: int = -10
+    climbTarget: int = -145
 
 class TunerConstants:
     """

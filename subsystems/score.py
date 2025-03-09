@@ -25,7 +25,7 @@ class Score(commands2.Subsystem):
         self.disallowGrabberRotation = (-2, 2)
         self.wrist.limit(self.disallowGrabberRotation)
 
-        self.allowArmRetraction = (-7,95)
+        self.allowArmRetraction = (-7,160)
         self.disallowArmRetractionFront = (-7,35)
         self.disallowArmRetractionBack = (142,187)
         self.arm.limit(self.allowArmRetraction)
