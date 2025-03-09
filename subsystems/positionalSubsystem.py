@@ -123,6 +123,6 @@ class PositionalSubsystem(commands2.Subsystem):
             self.prevGoal = goal
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
 
-        SmartDashboard.putNumber(self.getName()+"Target",self.target/self.conversionRate)
-        SmartDashboard.putNumber(self.getName()+"LimTarget",goal/self.conversionRate)
+        # SmartDashboard.putNumber(self.getName()+"Target",self.target/self.conversionRate)
+        # SmartDashboard.putNumber(self.getName()+"LimTarget",goal/self.conversionRate)
         # SmartDashboard.putNumber(self.getName()+"Position",self.get())
