@@ -33,15 +33,15 @@ class Direction(enum.Enum):
 
 class Limelight:
     kGyroId = 20
-    kLimelightHostnames = [ "limelight-foc", "limelight-boc" ]
+    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-elevate" ]
 
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
-    class precise:
-        move_p = 1
+    class precise: # TODO: Tune more & better
+        move_p = 1.75
         spin_p = 1.5
-        xy_tolerance: units.meters = 0.01
-        theta_tolerance: units.degrees = 0.5
+        xy_tolerance: units.meters = 0.025
+        theta_tolerance: units.degrees = 0.25
 
 class scorePositions:
     idle = scorePosition(

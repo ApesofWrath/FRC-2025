@@ -29,13 +29,14 @@ class Limelight(commands2.Subsystem):
             SmartDashboard.putData("alignTarget " + str(id), field)
 
         for name in constants.Limelight.kLimelightHostnames:
-            LimelightHelpers.set_imu_mode(name,3)
+            LimelightHelpers.set_imu_mode(name,4) # TODO: get it to work with IMU mode 3 (better)
 
         self.targetOnAField = Field2d()
         self.close = Field2d()
 
         SmartDashboard.putData("pathTarget",self.targetOnAField)
         self.tpe = concurrent.futures.ThreadPoolExecutor()
+        SmartDashboard.putBoolean("pathing",False)
 
     def fetch_limelight_measurements(self, LLHostname: str) -> None:
         """
@@ -67,7 +68,8 @@ class Limelight(commands2.Subsystem):
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
             units.inchesToMeters((1 if right else -1) * 8.5),
-            math.pi
+            #math.pi
+            0
         )
         new_target = target.transformBy(offset)
         self.targetOnAField.setRobotPose(new_target)
@@ -80,6 +82,7 @@ class Limelight(commands2.Subsystem):
         self.delta = current.log(target)
 
     def pathfind(self, right: bool, high: bool) -> commands2.Command:
+        SmartDashboard.putBoolean("pathing",True)
         target = self.get_target(self.get_current(), right, high)
         self.pathcmd = AutoBuilder.pathfindToPose(
             target,
@@ -88,6 +91,7 @@ class Limelight(commands2.Subsystem):
         self.pathcmd.schedule()
 
     def align(self, right, high):
+        SmartDashboard.putBoolean("pathing",False)
         self.update_delta(right, high)
         self.drivetrain.set_control(
             swerve.requests.FieldCentric() \
@@ -95,6 +99,15 @@ class Limelight(commands2.Subsystem):
                 .with_velocity_y(self.delta.dy * constants.Limelight.precise.move_p * (abs(self.delta.dy) > constants.Limelight.precise.xy_tolerance)) \
                 .with_velocity_x(self.delta.dx * constants.Limelight.precise.move_p * (abs(self.delta.dx) > constants.Limelight.precise.xy_tolerance))
         )
+
+    def std_dev_math(self, estimate):
+        if estimate.tag_count == 0:
+            return 0.5, 0.5, 0.5
+
+        avg_dist = sum(f.dist_to_camera for f in estimate.raw_fiducials) / estimate.tag_count
+        factor = 1 + (avg_dist ** 2 / 30)
+
+        return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
 
     def periodic(self) -> None:
         #self.close.setRobotPose(self.get_target(self.get_current(), constants.Direction.LEFT, False))
@@ -106,4 +119,8 @@ class Limelight(commands2.Subsystem):
         for future in concurrent.futures.as_completed(futures):
             estimate = future.result()
             if estimate and estimate.tag_count > 0:
-                self.drivetrain.add_vision_measurement(estimate.pose, utils.fpga_to_current_time(estimate.timestamp_seconds))
+                self.drivetrain.add_vision_measurement(
+                    estimate.pose,
+                    utils.fpga_to_current_time(estimate.timestamp_seconds),
+                    self.std_dev_math(estimate)
+                )
