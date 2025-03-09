@@ -160,20 +160,23 @@ class RobotContainer:
             # slow on bumpers
             (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
-#            # Run SysId routines when holding back and face buttons.
-#            # Note that each routine should be run exactly once in a single log.
-#            (self.driverController.back() & self.driverController.a()).whileTrue(
-#                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-#            )
-#            (self.driverController.back() & self.driverController.b()).whileTrue(
-#                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-#            )
-#            (self.driverController.back() & self.driverController.x()).whileTrue(
-#                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-#            )
-#            (self.driverController.back() & self.driverController.y()).whileTrue(
-#                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-#            )
+            # Run SysId routines when holding back and face buttons.
+            # Note that each routine should be run exactly once in a single log.
+            self.driverController.povLeft().onTrue(cmd.runOnce(SignalLogger.start))
+
+            (self.driverController.start() & self.driverController.a()).whileTrue(
+                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
+            )
+            (self.driverController.start() & self.driverController.b()).whileTrue(
+                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
+            )
+            (self.driverController.start() & self.driverController.x()).whileTrue(
+                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
+            )
+            (self.driverController.start() & self.driverController.y()).whileTrue(
+                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
+            )
+            self.driverController.povRight().onTrue(cmd.runOnce(SignalLogger.stop))
 
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
