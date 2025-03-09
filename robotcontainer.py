@@ -124,7 +124,7 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = False
+        alwaysBindAll = True
 
         if self.driverController.isConnected() or alwaysBindAll:
             print("Binding driver controller")
@@ -156,9 +156,9 @@ class RobotContainer:
             )
 
             # break on triggers
-            (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+            #(self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
             # slow on bumpers
-            (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
+            #(self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
             # Run SysId routines when holding back and face buttons.
             # Note that each routine should be run exactly once in a single log.
@@ -189,9 +189,21 @@ class RobotContainer:
             )
 
             # go to the closest alignment target
-            self.driverController.povUp().whileTrue(self.limelight.pathfind())
-            self.driverController.povDown().whileTrue(self.limelight.align())
-
+            self.driverController.leftBumper()\
+                .whileTrue(
+                    commands2.SequentialCommandGroup(
+                        cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False)),
+                        commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
+                        cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, False))
+                    ))\
+                .onFalse(
+                    cmd.runOnce(lambda:self.limelight.pathcmd.cancel())
+                )
+            # TODO: Fix the rest
+            # self.driverController.rightBumper().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False))).onTrue(lambda: self.limelight.align(constants.Direction.RIGHT, False))
+            # self.driverController.leftTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.LEFT, True))
+            # self.driverController.rightTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.RIGHT, True))
+            
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake

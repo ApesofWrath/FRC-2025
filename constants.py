@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import enum
 from typing import Union
 from phoenix6 import CANBus, configs, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
@@ -26,17 +27,21 @@ class scorePosition:
     elevator: Union[units.inches,None] = None
     reefDistance: Union[units.inches,None] = None
 
+class Direction(enum.Enum):
+    LEFT: bool = False
+    RIGHT: bool = True
+
 class Limelight:
     kGyroId = 20
-    kLimelightHostnames = [ "limelight-foc", "limelight-boc" ]
+    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-elevate" ]
 
-    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(.5,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
+    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
-    class precise:
-        move_p = 2
-        spin_p = 0.75
-        xy_tolerance = 0.01
-        theta_tolerance = 0.5
+    class precise: # TODO: Tune more & better
+        move_p = 1.75
+        spin_p = 1.5
+        xy_tolerance: units.meters = 0.025
+        theta_tolerance: units.degrees = 0.25
 
 class scorePositions:
     idle = scorePosition(
@@ -278,13 +283,13 @@ class TunerConstants:
 
     # Theoretical free speed (m/s) at 12 V applied output;
     # This needs to be tuned to your individual robot
-    speed_at_12_volts: units.meters_per_second = 3.92
+    speed_at_12_volts: units.meters_per_second = 4.73
 
     # Every 1 rotation of the azimuth results in _couple_ratio drive motor turns;
     # This may need to be tuned to your individual robot
     _couple_ratio = 3.5714285714285716
 
-    _drive_gear_ratio = 8.142857142857142
+    _drive_gear_ratio = 6.746031746031747
     _steer_gear_ratio = 21.428571428571427
     _wheel_radius: units.meters = inchesToMeters(2)
 
@@ -331,12 +336,11 @@ class TunerConstants:
         .with_drive_friction_voltage(_drive_friction_voltage)
     )
 
-    # TODO: re-zero the modules
     # Front Left
     _front_left_drive_motor_id = 3
     _front_left_steer_motor_id = 4
     _front_left_encoder_id = 10
-    _front_left_encoder_offset = -0.06591796875
+    _front_left_encoder_offset = -0.075439453125
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
@@ -347,7 +351,7 @@ class TunerConstants:
     _front_right_drive_motor_id = 7
     _front_right_steer_motor_id = 8
     _front_right_encoder_id = 12
-    _front_right_encoder_offset = 0.3544921875
+    _front_right_encoder_offset = 0.356689453125
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
@@ -358,7 +362,7 @@ class TunerConstants:
     _back_left_drive_motor_id = 1
     _back_left_steer_motor_id = 2
     _back_left_encoder_id = 9
-    _back_left_encoder_offset = 0.3193359375
+    _back_left_encoder_offset = 0.416259765625
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
@@ -369,7 +373,7 @@ class TunerConstants:
     _back_right_drive_motor_id = 5
     _back_right_steer_motor_id = 6
     _back_right_encoder_id = 11
-    _back_right_encoder_offset = -0.226318359375
+    _back_right_encoder_offset = -0.228515625
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 

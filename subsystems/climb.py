@@ -80,7 +80,7 @@ class Climb(commands2.Subsystem):
                 commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb voltage zeroed"))
             )
 
-    def periodic(self):
-        SmartDashboard.putNumber("climbpos",self.motor.get_position().value_as_double)
-        SmartDashboard.putNumber("climbvel",self.motor.get_velocity().value_as_double)
-        SmartDashboard.putNumber("climbtorque",self.motor.get_torque_current().value_as_double)
+    #def periodic(self):
+        #SmartDashboard.putNumber("climbpos",self.motor.get_position().value_as_double)
+        #SmartDashboard.putNumber("climbvel",self.motor.get_velocity().value_as_double)
+        #SmartDashboard.putNumber("climbtorque",self.motor.get_torque_current().value_as_double)
