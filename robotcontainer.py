@@ -83,6 +83,7 @@ class RobotContainer:
             wrist=self.wrist,
             grabber=self.grabber
         )
+        self.climb = Climb()
         
         # The robot's auton commands
         NamedCommands.registerCommand("Score L1", self.score.l1())
@@ -202,6 +203,10 @@ class RobotContainer:
             self.operatorController.b().onTrue(self.score.l234(constants.scorePositions.l2))
             self.operatorController.x().onTrue(self.score.l234(constants.scorePositions.l3))
             self.operatorController.y().onTrue(self.score.l234(constants.scorePositions.l4))
+
+            # climb
+            self.operatorController.leftTrigger().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=155)),self.climb.move(False, constants.Climb.unspoolVoltage)))
+            self.operatorController.rightTrigger().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
 
         if self.configController.isConnected():
             print("Binding config controller")
