@@ -186,9 +186,13 @@ class RobotContainer:
             )
 
             # go to the closest alignment target
-            self.driverController.povUp().whileTrue(self.limelight.pathfind())
-            self.driverController.povDown().whileTrue(self.limelight.align())
-
+            self.driverController.leftBumper().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False))).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
+            self.driverController.rightBumper().whileTrue(cmd.repeatingSequence(cmd.runOnce(lambda: self.limelight.align(constants.Direction.LEFT, False))))
+            # TODO: Fix the rest
+            # self.driverController.rightBumper().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False))).onTrue(lambda: self.limelight.align(constants.Direction.RIGHT, False))
+            # self.driverController.leftTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.LEFT, True))
+            # self.driverController.rightTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.RIGHT, True))
+            
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake

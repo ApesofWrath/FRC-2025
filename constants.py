@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import enum
 from typing import Union
 from phoenix6 import CANBus, configs, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
@@ -26,17 +27,21 @@ class scorePosition:
     elevator: Union[units.inches,None] = None
     reefDistance: Union[units.inches,None] = None
 
+class Direction(enum.Enum):
+    LEFT: bool = False
+    RIGHT: bool = True
+
 class Limelight:
     kGyroId = 20
     kLimelightHostnames = [ "limelight-foc", "limelight-boc" ]
 
-    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(.5,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
+    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
     class precise:
-        move_p = 2
-        spin_p = 0.75
-        xy_tolerance = 0.01
-        theta_tolerance = 0.5
+        move_p = 1
+        spin_p = 1.5
+        xy_tolerance: units.meters = 0.01
+        theta_tolerance: units.degrees = 0.5
 
 class scorePositions:
     idle = scorePosition(
