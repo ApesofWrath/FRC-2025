@@ -32,14 +32,12 @@ class Direction(enum.Enum):
     RIGHT: bool = True
 
 class Limelight:
-    kGyroId = 20
     kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-elevate" ]
-
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
-    class precise: # TODO: Tune more & better
-        move_p = 1.75
-        spin_p = 1.5
+    class precise:
+        move_p = 1
+        spin_p = 2
         xy_tolerance: units.meters = 0.025
         theta_tolerance: units.degrees = 0.25
 
@@ -58,19 +56,19 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 19.5
+        reefDistance = 16.5
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 4,
-        reefDistance = 19.5
+        reefDistance = 16.5
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 19.5
+        reefDistance = 16.5
     )
     l4 = scorePosition(
         wrist = 0,
@@ -289,7 +287,7 @@ class TunerConstants:
     # This may need to be tuned to your individual robot
     _couple_ratio = 3.5714285714285716
 
-    _drive_gear_ratio = 6.746031746031747
+    _drive_gear_ratio = 8.14
     _steer_gear_ratio = 21.428571428571427
     _wheel_radius: units.meters = inchesToMeters(2)
 
@@ -344,8 +342,8 @@ class TunerConstants:
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
-    _front_left_x_pos: units.meters = inchesToMeters(11.625)
-    _front_left_y_pos: units.meters = inchesToMeters(11.625)
+    _front_left_x_pos: units.meters = inchesToMeters(11.5)
+    _front_left_y_pos: units.meters = inchesToMeters(11.5)
 
     # Front Right
     _front_right_drive_motor_id = 7
@@ -355,8 +353,8 @@ class TunerConstants:
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
-    _front_right_x_pos: units.meters = inchesToMeters(11.625)
-    _front_right_y_pos: units.meters = inchesToMeters(-11.625)
+    _front_right_x_pos: units.meters = inchesToMeters(11.5)
+    _front_right_y_pos: units.meters = inchesToMeters(-11.5)
 
     # Back Left
     _back_left_drive_motor_id = 1
@@ -366,8 +364,8 @@ class TunerConstants:
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
-    _back_left_x_pos: units.meters = inchesToMeters(-11.625)
-    _back_left_y_pos: units.meters = inchesToMeters(11.625)
+    _back_left_x_pos: units.meters = inchesToMeters(-11.5)
+    _back_left_y_pos: units.meters = inchesToMeters(11.5)
 
     # Back Right
     _back_right_drive_motor_id = 5
@@ -377,8 +375,8 @@ class TunerConstants:
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 
-    _back_right_x_pos: units.meters = inchesToMeters(-11.625)
-    _back_right_y_pos: units.meters = inchesToMeters(-11.625)
+    _back_right_x_pos: units.meters = inchesToMeters(-11.5)
+    _back_right_y_pos: units.meters = inchesToMeters(-11.5)
 
 
     front_left = _constants_creator.create_module_constants(

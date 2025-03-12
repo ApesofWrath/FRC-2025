@@ -155,11 +155,12 @@ class RobotContainer:
                 )
             )
 
-            # break on triggers
-            #(self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
-            # slow on bumpers
-            #(self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
+            # break
+            (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+            # slow
+            (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
+            '''
             # Run SysId routines when holding back and face buttons.
             # Note that each routine should be run exactly once in a single log.
             self.driverController.povLeft().onTrue(cmd.runOnce(SignalLogger.start))
@@ -177,6 +178,7 @@ class RobotContainer:
                 self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
             )
             self.driverController.povRight().onTrue(cmd.runOnce(SignalLogger.stop))
+            '''
 
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
@@ -188,21 +190,36 @@ class RobotContainer:
                 self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
             )
 
+            aalign = commands2.SequentialCommandGroup(
+                #cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False)),
+                #commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
+                cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, False))
+            )
+            aalign.addRequirements(self.robotDrive)
+
             # go to the closest alignment target
-            self.driverController.leftBumper()\
-                .whileTrue(
-                    commands2.SequentialCommandGroup(
-                        cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False)),
-                        commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                        cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, False))
-                    ))\
-                .onFalse(
-                    cmd.runOnce(lambda:self.limelight.pathcmd.cancel())
-                )
-            # TODO: Fix the rest
-            # self.driverController.rightBumper().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False))).onTrue(lambda: self.limelight.align(constants.Direction.RIGHT, False))
-            # self.driverController.leftTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.LEFT, True))
-            # self.driverController.rightTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.RIGHT, True))
+            self.driverController.a().whileTrue(aalign).onFalse(cmd.runOnce(lambda:aalign.cancel()))#.onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
+            
+            self.driverController.b().whileTrue(
+                commands2.SequentialCommandGroup(
+                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False)),
+                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
+                    cmd.run(lambda: self.limelight.align(constants.Direction.RIGHT, False))
+                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
+            
+            self.driverController.x().whileTrue(
+                commands2.SequentialCommandGroup(
+                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True)),
+                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
+                    cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, True))
+                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
+            
+            self.driverController.y().whileTrue(
+                commands2.SequentialCommandGroup(
+                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True)),
+                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
+                    cmd.run(lambda: self.limelight.align(constants.Direction.RIGHT, True))
+                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
             
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
