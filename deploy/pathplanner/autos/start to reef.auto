@@ -5,9 +5,21 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Grabber"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Path 1- start to reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
           }
         }
       ]
