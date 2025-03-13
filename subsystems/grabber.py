@@ -49,10 +49,10 @@ class Grabber(commands2.Subsystem):
         self.mainMotor.set_control(controls.VelocityVoltage(-20))
 
     def OFF(self) -> None:
-        self.mainMotor.set_control(controls.VelocityVoltage(0))
+        self.mainMotor.set_control(controls.VoltageOut(0))
 
     def HLD(self) -> None:
-        self.mainMotor.set_control(controls.TorqueCurrentFOC(10))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(30))
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.cmd.runOnce(

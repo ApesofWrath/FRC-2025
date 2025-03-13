@@ -21,7 +21,7 @@ class Limelight(commands2.Subsystem):
         self.drivetrain = drive
         self.pigeon2 = Pigeon2(constants.TunerConstants._pigeon_id, "Drivetrain")
         self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
-        self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi))
+        self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
         self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
 
         for id,target in constants.Limelight.kAlignmentTargets.items():
