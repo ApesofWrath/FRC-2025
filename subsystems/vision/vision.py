@@ -30,7 +30,7 @@ class Limelight(commands2.Subsystem):
             SmartDashboard.putData("alignTarget " + str(id), field)
 
         for name in constants.Limelight.kLimelightHostnames:
-            LimelightHelpers.set_imu_mode(name,4)
+            LimelightHelpers.set_imu_mode(name,3)
         
         self.pathcmd = commands2.Command()
         self.target = Pose2d()
@@ -38,6 +38,8 @@ class Limelight(commands2.Subsystem):
         self.targetOnAField = Field2d()
         self.close = Field2d()
         self.delta = Twist2d()
+
+        self.imuset = False
 
         SmartDashboard.putData("pathTarget",self.targetOnAField)
         self.tpe = concurrent.futures.ThreadPoolExecutor()
@@ -108,8 +110,6 @@ class Limelight(commands2.Subsystem):
 
         return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
 
-
-    # thanks 4915
     def getPathVelocityHeading(self, speed):
         if abs(speed) < .25:
             diff: Translation2d = (self.target - self.drivetrain.get_state().pose.translation()).translation()
@@ -151,6 +151,10 @@ class Limelight(commands2.Subsystem):
         #SmartDashboard.putData("target",self.close)
 
         # DO IMU MODE 3 WHEN DISSABLE AND 4 OTHERWISE
+        if DriverStation.isEnabled() and not self.imuset:
+            self.imuset = True
+            for name in constants.Limelight.kLimelightHostnames:
+                LimelightHelpers.set_imu_mode(name,4)
 
         SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
 
