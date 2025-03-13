@@ -74,7 +74,7 @@ class Limelight(commands2.Subsystem):
         target = self.get_closest_tag(self.get_current())
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
-            units.inchesToMeters(11.5 if right else -11.5),
+            units.inchesToMeters(5 if right else -5),
             0
         )
         new_target = target.transformBy(offset)
