@@ -45,7 +45,7 @@ class Limelight(commands2.Subsystem):
         self.tpe = concurrent.futures.ThreadPoolExecutor()
         SmartDashboard.putBoolean("pathing",False)
 
-    def fetch_limelight_measurements(self, LLHostname: str) -> None:
+    def fetch_limelight_measurements(self, LLHostname: str):
         """
         Add vision measurement to MegaTag2
         """
@@ -58,8 +58,8 @@ class Limelight(commands2.Subsystem):
 
         # get botpose estimate with origin on blue side of field
         mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(LLHostname)
-        
-        # if we are spinning slower than 720 deg/sec and we see tags
+
+        # if we see tags
         if mega_tag2.tag_count > 0:
             # set and add vision measurement
             return mega_tag2
@@ -74,32 +74,13 @@ class Limelight(commands2.Subsystem):
         target = self.get_closest_tag(self.get_current())
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
-            units.inchesToMeters((1 if right else -1) * 11.5),
+            units.inchesToMeters(11.5 if right else -11.5),
             0
         )
         new_target = target.transformBy(offset)
         self.targetOnAField.setRobotPose(new_target)
         SmartDashboard.putData("pathTarget",self.targetOnAField)
         self.target = new_target
-
-    def update_delta(self, right, high):
-        current = self.get_current()
-        target = self.get_target(current, right, high)
-        self.delta = target.log(current)
-
-    def pathfind(self, right: bool, high: bool) -> None:
-        SmartDashboard.putBoolean("pathing",True)
-        target = self.get_target(self.get_current(), right, high)
-        return self.getPath(target)
-
-    def align(self, right, high):
-        self.update_delta(right, high)
-        self.drivetrain.set_control(
-            swerve.requests.FieldCentric() \
-                .with_rotational_rate(self.delta.dtheta * constants.Limelight.precise.spin_p * (abs(self.delta.dtheta_degrees) > constants.Limelight.precise.theta_tolerance)) \
-                .with_velocity_y(self.delta.dy * constants.Limelight.precise.move_p * (abs(self.delta.dy) > constants.Limelight.precise.xy_tolerance)) \
-                .with_velocity_x(self.delta.dx * constants.Limelight.precise.move_p * (abs(self.delta.dx) > constants.Limelight.precise.xy_tolerance))
-        )
 
     def std_dev_math(self, estimate):
         if estimate.tag_count == 0:
@@ -109,12 +90,6 @@ class Limelight(commands2.Subsystem):
         factor = 1 + (avg_dist ** 2 / 30)
 
         return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
-
-    def getPathVelocityHeading(self, speed):
-        if abs(speed) < .25:
-            diff: Translation2d = (self.target - self.drivetrain.get_state().pose.translation()).translation()
-            return self.target.rotation() if diff.norm() < .01 else diff.angle()
-        return Rotation2d(speed.vx,speed.vy)
 
     def getPath(self):
         driveState = self.drivetrain.get_state()
@@ -160,6 +135,8 @@ class Limelight(commands2.Subsystem):
 
         if self.pigeon2.get_angular_velocity_z_world(False).value > 360:
             return
+
+        self.fetch_limelight_measurements("dsa")
 
         futures = [ self.tpe.submit(self.fetch_limelight_measurements, hn) for hn in constants.Limelight.kLimelightHostnames ]
         for future in concurrent.futures.as_completed(futures):

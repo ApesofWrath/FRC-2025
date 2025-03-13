@@ -197,10 +197,10 @@ class RobotContainer:
                 cmd.runOnce(lambda: self.limelight.update_target(right, high)),
                 PIDAlignCMD(self.robotDrive,self.limelight)
             ))
-            bindalign(self.driverController.a(), constants.Direction.LEFT, False)
-            bindalign(self.driverController.b(), constants.Direction.RIGHT, False)
-            bindalign(self.driverController.x(), constants.Direction.LEFT, True)
-            bindalign(self.driverController.y(), constants.Direction.RIGHT, True)
+            bindalign(self.driverController.a(), False, False)
+            bindalign(self.driverController.b(), True, False)
+            bindalign(self.driverController.x(), False, True)
+            bindalign(self.driverController.y(), True, True)
 
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
