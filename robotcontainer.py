@@ -1,12 +1,13 @@
 # project imports
 import constants
-from subsystems.limelight import Limelight
+from subsystems.vision.vision import Limelight
 from subsystems.score import Score
 from subsystems.climb import Climb
 from subsystems.positionalSubsystem import PositionalSubsystem
 from subsystems.grabber import Grabber
 from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
+from subsystems.vision.aligncmd import PIDAlignCMD
 
 # commands imports
 import commands2
@@ -90,6 +91,7 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2))
         NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
+        NamedCommands.registerCommand("Grabber", cmd.runOnce(self.score.grabber.HLD))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -190,37 +192,16 @@ class RobotContainer:
                 self.robotDrive.apply_request(lambda: swerve.requests.PointWheelsAt().with_module_direction(Rotation2d()))
             )
 
-            aalign = commands2.SequentialCommandGroup(
-                #cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False)),
-                #commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, False))
-            )
-            aalign.addRequirements(self.robotDrive)
-
             # go to the closest alignment target
-            self.driverController.a().whileTrue(aalign).onFalse(cmd.runOnce(lambda:aalign.cancel()))#.onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
-            
-            self.driverController.b().whileTrue(
-                commands2.SequentialCommandGroup(
-                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False)),
-                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                    cmd.run(lambda: self.limelight.align(constants.Direction.RIGHT, False))
-                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
-            
-            self.driverController.x().whileTrue(
-                commands2.SequentialCommandGroup(
-                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True)),
-                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                    cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, True))
-                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
-            
-            self.driverController.y().whileTrue(
-                commands2.SequentialCommandGroup(
-                    cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True)),
-                    commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                    cmd.run(lambda: self.limelight.align(constants.Direction.RIGHT, True))
-                )).onFalse(cmd.runOnce(lambda:self.limelight.pathcmd.cancel()))
-            
+            bindalign = lambda trigger, right, high: trigger.whileTrue(commands2.SequentialCommandGroup(
+                cmd.runOnce(lambda: self.limelight.update_target(right, high)),
+                PIDAlignCMD(self.robotDrive,self.limelight)
+            ))
+            bindalign(self.driverController.a(), constants.Direction.LEFT, False)
+            bindalign(self.driverController.b(), constants.Direction.RIGHT, False)
+            bindalign(self.driverController.x(), constants.Direction.LEFT, True)
+            bindalign(self.driverController.y(), constants.Direction.RIGHT, True)
+
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake

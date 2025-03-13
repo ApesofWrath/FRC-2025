@@ -2,12 +2,14 @@ from dataclasses import dataclass
 import enum
 from typing import Union
 from phoenix6 import CANBus, configs, signals, swerve
-from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
+from wpimath.units import inchesToMeters, rotationsToRadians
 from wpimath import units
 import commands2.cmd as cmd
 from wpimath.geometry import Transform2d
 from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
 from math import pi
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import PIDConstants
 
 def makeCommand(func):
     def cmdFn(*args, **kwargs):
@@ -32,7 +34,7 @@ class Direction(enum.Enum):
     RIGHT: bool = True
 
 class Limelight:
-    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-elevate" ]
+    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
     class precise:
@@ -56,25 +58,25 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 16.5
+        reefDistance = 17.5
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 4,
-        reefDistance = 16.5
+        reefDistance = 17.5
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 16.5
+        reefDistance = 17.5
     )
     l4 = scorePosition(
         wrist = 0,
         arm = 25,
         elevator = 54,
-        reefDistance = 26.25
+        reefDistance = 26.5
     )
 
 class Elevator:
@@ -140,7 +142,7 @@ class Arm:
     encoderConfig = configs.CANcoderConfiguration() \
         .with_magnet_sensor(
             configs.MagnetSensorConfigs() \
-                .with_magnet_offset(-0.059570) \
+                .with_magnet_offset(-0.055664) \
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )
@@ -200,7 +202,7 @@ class Grabber:
     FWDvelocity: int = 8
     REVvelocity: int = -5
     HLDvelocity: int = 4
-    currentLimit: int = 30
+    currentLimit: int = 80
 
 class Climb:
     id: int = 21

@@ -1,17 +1,19 @@
-from constants import makeCommand
+from constants import makeCommand, Limelight
 
 from commands2 import Command, Subsystem
 from commands2.sysid import SysIdRoutine
 import math
 
 from pathplannerlib.auto import AutoBuilder
-from pathplannerlib.config import PIDConstants, RobotConfig
-from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import RobotConfig
 from phoenix6 import SignalLogger, swerve, units, utils
 from typing import Callable
 from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Rotation2d
+
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import PIDConstants
 
 class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
     """
@@ -39,12 +41,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                 .with_wheel_force_feedforwards_x(feedforwards.robotRelativeForcesXNewtons)
                 .with_wheel_force_feedforwards_y(feedforwards.robotRelativeForcesYNewtons)
             ),
-            PPHolonomicDriveController(
-                # PID constants for translation
-                PIDConstants(kP=5), #1
-                # PID constants for rotation
-                PIDConstants(kP=5) #1 TODO: tune more
-            ),
+            self.autonpid,
             RobotConfig.fromGUISettings(),
             # Assume the path needs to be flipped for Red vs Blue, this is normally the case
             lambda: (DriverStation.getAlliance() or DriverStation.Alliance.kBlue) == DriverStation.Alliance.kRed,
@@ -84,6 +81,13 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         )
 
         self.slow = False
+
+        self.autonpid = PPHolonomicDriveController(
+            # PID constants for translation
+            PIDConstants(kP=5),
+            # PID constants for rotation
+            PIDConstants(kP=7) # TODO: tune more
+        )
 
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0

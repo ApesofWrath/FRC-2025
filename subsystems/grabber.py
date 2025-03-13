@@ -17,30 +17,42 @@ class Grabber(commands2.Subsystem):
 
         self.mainMotor.set_position(0)
 
-        motorConfigs = configs.TalonFXConfiguration()
-
-        motorConfigs.motor_output = configs.MotorOutputConfigs() \
-            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
-
-        motorConfigs.current_limits = configs.CurrentLimitsConfigs() \
-            .with_stator_current_limit_enable(True) \
-            .with_stator_current_limit(constants.Grabber.currentLimit)
+        motorConfigs = configs.TalonFXConfiguration()\
+            .with_motor_output(
+                configs.MotorOutputConfigs() \
+                    .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            )\
+            .with_current_limits(
+                configs.CurrentLimitsConfigs() \
+                    .with_stator_current_limit_enable(True) \
+                    .with_stator_current_limit(constants.Grabber.currentLimit)
+            )\
+            .with_slot0(
+                configs.Slot0Configs()\
+                    .with_k_p(10/16)\
+                    .with_k_i(0)\
+                    .with_k_d(0)\
+                    .with_k_v(10/16)\
+                    .with_k_s(0)\
+                    .with_k_a(0)\
+                    .with_k_g(0)
+            )
 
         self.mainMotor.configurator.apply(motorConfigs)
 
         self.voltage_req = controls.VoltageOut(0)
 
     def FWD(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.FWDvelocity))
+        self.mainMotor.set_control(controls.VelocityVoltage(35))
 
     def REV(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.REVvelocity))
+        self.mainMotor.set_control(controls.VelocityVoltage(-20))
 
     def OFF(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(0))
+        self.mainMotor.set_control(controls.VelocityVoltage(0))
 
     def HLD(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.HLDvelocity))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(10))
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.cmd.runOnce(

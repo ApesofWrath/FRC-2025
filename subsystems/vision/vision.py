@@ -1,17 +1,18 @@
 import concurrent.futures
 import math
+from typing import List
 
 import commands2
 from phoenix6 import utils, swerve
 from phoenix6.hardware import Pigeon2
-from wpimath.geometry import Transform2d, Pose2d, Twist2d
+from wpimath.geometry import Transform2d, Pose2d, Twist2d, Translation2d, Rotation2d
 from wpimath import units
-from pathplannerlib.path import PathConstraints
+from pathplannerlib.path import PathConstraints, PathPlannerPath, Waypoint, IdealStartingState, GoalEndState
 from pathplannerlib.auto import AutoBuilder
 from wpilib import SmartDashboard, Field2d, DriverStation
 
 import constants
-from subsystems.limelight.limelight import LimelightHelpers
+from subsystems.vision.lib import LimelightHelpers
 from subsystems.drivetrain import CommandSwerveDrivetrain as Drivetrain
 
 class Limelight(commands2.Subsystem):
@@ -19,7 +20,7 @@ class Limelight(commands2.Subsystem):
         super().__init__()
         self.drivetrain = drive
         self.pigeon2 = Pigeon2(constants.TunerConstants._pigeon_id, "Drivetrain")
-        self.pigeon2.set_yaw((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)
+        self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
         self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi))
         self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
 
@@ -30,6 +31,9 @@ class Limelight(commands2.Subsystem):
 
         for name in constants.Limelight.kLimelightHostnames:
             LimelightHelpers.set_imu_mode(name,4)
+        
+        self.pathcmd = commands2.Command()
+        self.target = Pose2d()
 
         self.targetOnAField = Field2d()
         self.close = Field2d()
@@ -64,18 +68,17 @@ class Limelight(commands2.Subsystem):
     def get_closest_tag(self, current: Pose2d):
         return current.nearest(list(constants.Limelight.kAlignmentTargets.values()))
 
-    def get_target(self, current, right, high) -> Pose2d:
-        target = self.get_closest_tag(current)
+    def update_target(self, right, high) -> Pose2d:
+        target = self.get_closest_tag(self.get_current())
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
-            units.inchesToMeters((1 if right else -1) * 12.5),
-            #math.pi
+            units.inchesToMeters((1 if right else -1) * 11.5),
             0
         )
         new_target = target.transformBy(offset)
         self.targetOnAField.setRobotPose(new_target)
         SmartDashboard.putData("pathTarget",self.targetOnAField)
-        return new_target
+        self.target = new_target
 
     def update_delta(self, right, high):
         current = self.get_current()
@@ -85,14 +88,9 @@ class Limelight(commands2.Subsystem):
     def pathfind(self, right: bool, high: bool) -> None:
         SmartDashboard.putBoolean("pathing",True)
         target = self.get_target(self.get_current(), right, high)
-        self.pathcmd = AutoBuilder.pathfindToPose(
-            target,
-            PathConstraints( 2.5, 2.5, 1, 1 )
-        )
-        self.pathcmd.schedule()
+        return self.getPath(target)
 
     def align(self, right, high):
-        SmartDashboard.putBoolean("pathing",False)
         self.update_delta(right, high)
         self.drivetrain.set_control(
             swerve.requests.FieldCentric() \
@@ -110,9 +108,49 @@ class Limelight(commands2.Subsystem):
 
         return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
 
+
+    # thanks 4915
+    def getPathVelocityHeading(self, speed):
+        if abs(speed) < .25:
+            diff: Translation2d = (self.target - self.drivetrain.get_state().pose.translation()).translation()
+            return self.target.rotation() if diff.norm() < .01 else diff.angle()
+        return Rotation2d(speed.vx,speed.vy)
+
+    def getPath(self):
+        driveState = self.drivetrain.get_state()
+        drivePose = driveState.pose
+
+        waypoints: List[Waypoint] = PathPlannerPath.waypointsFromPoses([
+            Pose2d(
+                drivePose.translation(),
+                drivePose.rotation()
+            ),
+            self.target
+        ])
+
+        if waypoints[0].anchor.distance(waypoints[1].anchor) < .01:
+            return
+        
+        path = PathPlannerPath(
+            waypoints,
+            PathConstraints( 2, 1.75, math.pi/2, math.pi ),
+            IdealStartingState(float(math.sqrt(driveState.speeds.vx**2+driveState.speeds.vy**2)), self.drivetrain.get_state().pose.rotation()),
+            GoalEndState(0.,self.target.rotation())
+        )
+
+        path.preventFlipping = True
+
+        self.pathcmd = commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",True)).andThen(
+            AutoBuilder.followPath(path).andThen(
+                commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",False))))
+        self.pathcmd.addRequirements(self.drivetrain)
+        self.pathcmd.schedule()
+
     def periodic(self) -> None:
         #self.close.setRobotPose(self.get_target(self.get_current(), constants.Direction.LEFT, False))
         #SmartDashboard.putData("target",self.close)
+
+        # DO IMU MODE 3 WHEN DISSABLE AND 4 OTHERWISE
 
         SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
 
