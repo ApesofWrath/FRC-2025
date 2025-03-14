@@ -92,7 +92,7 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
         NamedCommands.registerCommand("Grabber", cmd.runOnce(self.score.grabber.HLD))
-        NamedCommands.registerCommand("Intake", self.score.intake())
+        NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -206,7 +206,8 @@ class RobotContainer:
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake
-            (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake())
+            self.operatorController.leftBumper().onTrue(self.score.intake(constants.scorePositions.intake))
+            self.operatorController.rightBumper().onTrue(self.score.intake(constants.scorePositions.hpintake))
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 

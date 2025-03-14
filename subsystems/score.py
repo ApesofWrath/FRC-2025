@@ -46,11 +46,11 @@ class Score(commands2.Subsystem):
         positionCommand.addRequirements(self)
         return positionCommand
 
-    def intake(self) -> commands2.Command:
+    def intake(self,position:constants.scorePosition) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
             self.position(constants.scorePosition(arm=20)),
-            self.position(constants.scorePosition(wrist=constants.scorePositions.intake.wrist)),
-            self.position(constants.scorePositions.intake),
+            self.position(constants.scorePosition(wrist=position.wrist)),
+            self.position(position),
             self.grabber.intake(),
             self.position(constants.scorePositions.idle)
         )
