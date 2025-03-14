@@ -92,6 +92,7 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
         NamedCommands.registerCommand("Grabber", cmd.runOnce(self.score.grabber.HLD))
+        NamedCommands.registerCommand("Intake", self.score.intake())
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
