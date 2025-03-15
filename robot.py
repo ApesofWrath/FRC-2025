@@ -3,11 +3,11 @@ import typing
 
 # project imports
 import robotcontainer
+import constants
 
 # wpi imports
 import commands2
 import commands2.cmd
-
 
 class MyRobot(commands2.TimedCommandRobot):
     """
@@ -49,6 +49,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # This makes sure that the autonomous stops running when teleop starts
         # running. If you want the autonomous to continue until interrupted by
         # another command, remove this line or comment it out.
+        self.container.climb.move(False, constants.Climb.unspoolVoltage).schedule()
         if self.autonomousCommand is not None:
             self.autonomousCommand.cancel()
 

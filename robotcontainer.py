@@ -211,7 +211,7 @@ class RobotContainer:
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
-            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle)))
+            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle),commands2.cmd.runOnce(self.score.grabber.HLD)))
 
             # score at various heights
             self.operatorController.a().onTrue(self.score.l1())
@@ -220,17 +220,18 @@ class RobotContainer:
             self.operatorController.y().onTrue(self.score.l234(constants.scorePositions.l4))
 
             # climb
-            self.operatorController.leftTrigger().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=155)),self.climb.move(False, constants.Climb.unspoolVoltage)))
+            self.operatorController.leftTrigger().onTrue(self.score.position(constants.scorePosition(arm=155)))
             self.operatorController.rightTrigger().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
 
         if self.configController.isConnected():
             print("Binding config controller")
             # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
+            (self.configController.leftTrigger()|self.configController.rightTrigger()).onTrue(self.score.position(constants.scorePositions.l1))
             self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
-            self.configController.a().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
-            self.configController.b().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
-            self.configController.x().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kForward))
-            self.configController.y().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
+            self.configController.a().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
+            self.configController.b().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
+            self.configController.x().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kForward))
+            self.configController.y().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
             self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
 
         if not utils.is_simulation():

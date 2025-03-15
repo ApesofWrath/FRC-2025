@@ -63,25 +63,25 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 17.5
+        reefDistance = 14
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 4,
-        reefDistance = 17.5
+        reefDistance = 14
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 17.5
+        reefDistance = 14
     )
     l4 = scorePosition(
         wrist = 0,
         arm = 25,
         elevator = 54,
-        reefDistance = 26.5
+        reefDistance = 23
     )
 
 class Elevator:
@@ -165,7 +165,7 @@ class Wrist:
 
     config = configs.TalonFXConfiguration() \
         .with_motor_output(configs.MotorOutputConfigs() \
-            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            .with_neutral_mode(signals.NeutralModeValue.COAST)
         )\
         .with_feedback(configs.FeedbackConfigs() \
             .with_feedback_remote_sensor_id(encoder) \
@@ -176,17 +176,17 @@ class Wrist:
             .with_stator_current_limit(40)
         )\
         .with_slot0(configs.Slot0Configs() \
-            .with_k_s(0.75) \
-            .with_k_v(6.0118) \
-            .with_k_a(0.89434) \
+            .with_k_s(0.19505) \
+            .with_k_v(0.11845) \
+            .with_k_a(0.0017884) \
             .with_k_g(0) \
-            .with_k_p(18.076) \
-            .with_k_d(2.7363)
+            .with_k_p(53.449/2) \
+            .with_k_d(0.38955)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(20 * gearRatio) \
-            .with_motion_magic_cruise_velocity(.5 * gearRatio) \
-            .with_motion_magic_jerk(40 * gearRatio)
+            .with_motion_magic_acceleration(20 * gearRatio * 3) \
+            .with_motion_magic_cruise_velocity(.5 * gearRatio * 3) \
+            .with_motion_magic_jerk(40 * gearRatio * 3)
         )
 
     sysidConf = sysidConfig(

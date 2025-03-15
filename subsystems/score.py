@@ -52,7 +52,8 @@ class Score(commands2.Subsystem):
             self.position(constants.scorePosition(wrist=position.wrist)),
             self.position(position),
             self.grabber.intake(),
-            self.position(constants.scorePositions.idle)
+            self.position(constants.scorePositions.idle),
+            commands2.cmd.runOnce(self.grabber.HLD)
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
@@ -61,7 +62,8 @@ class Score(commands2.Subsystem):
         return commands2.SequentialCommandGroup(
             self.position(constants.scorePositions.l1),
             self.grabber.outtake(),
-            self.position(constants.scorePositions.idle)
+            self.position(constants.scorePositions.idle),
+            commands2.cmd.runOnce(self.grabber.HLD)
         )
 
     def l234(self, position: constants.scorePosition) -> commands2.Command:
@@ -86,6 +88,7 @@ class Score(commands2.Subsystem):
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
             commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","done")),
+            commands2.cmd.runOnce(self.grabber.HLD)
         )
 
     def periodic(self) -> None:
@@ -94,6 +97,7 @@ class Score(commands2.Subsystem):
         isArmExtendedBack = armStatusValue >= 150
         isArmSomewhatExtendedFront = 70 > armStatusValue > 30
         isArmSomewhatExtendedBack = 110 < armStatusValue < 150
+        isArmSpecialExtension = 60< armStatusValue <120
         isElevatorUp = self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch
         isGrabberAngled = abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)
 
@@ -104,7 +108,7 @@ class Score(commands2.Subsystem):
         elif isArmSomewhatExtendedBack:
             self.wrist.limit(self.somewhatAllowGrabberRotationBack)
         #if not (isArmExtendedBack or isArmExtendedFront or isArmSomewhatExtendedBack or isArmSomewhatExtendedFront or isElevatorUp):
-        else:
+        elif isArmSpecialExtension:
             self.wrist.limit(self.disallowGrabberRotation)
 
         if isGrabberAngled:

@@ -3,9 +3,9 @@ import math
 from typing import List
 
 import commands2
-from phoenix6 import utils, swerve
+from phoenix6 import utils
 from phoenix6.hardware import Pigeon2
-from wpimath.geometry import Transform2d, Pose2d, Twist2d, Translation2d, Rotation2d
+from wpimath.geometry import Transform2d, Pose2d, Twist2d
 from wpimath import units
 from pathplannerlib.path import PathConstraints, PathPlannerPath, Waypoint, IdealStartingState, GoalEndState
 from pathplannerlib.auto import AutoBuilder
@@ -20,17 +20,12 @@ class Limelight(commands2.Subsystem):
         super().__init__()
         self.drivetrain = drive
         self.pigeon2 = Pigeon2(constants.TunerConstants._pigeon_id, "Drivetrain")
-        self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
-        self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
         self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
 
         for id,target in constants.Limelight.kAlignmentTargets.items():
             field = Field2d()
             field.setRobotPose(target)
             SmartDashboard.putData("alignTarget " + str(id), field)
-
-        for name in constants.Limelight.kLimelightHostnames:
-            LimelightHelpers.set_imu_mode(name,3)
         
         self.pathcmd = commands2.Command()
         self.target = Pose2d()
@@ -130,6 +125,12 @@ class Limelight(commands2.Subsystem):
             self.imuset = True
             for name in constants.Limelight.kLimelightHostnames:
                 LimelightHelpers.set_imu_mode(name,4)
+        elif DriverStation.isDisabled():
+            for name in constants.Limelight.kLimelightHostnames:
+                LimelightHelpers.set_imu_mode(name,3)
+            if DriverStation.isFMSAttached() and not self.imuset:
+                self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
+                self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
 
         SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
 

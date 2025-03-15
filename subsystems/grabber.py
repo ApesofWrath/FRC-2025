@@ -51,8 +51,11 @@ class Grabber(commands2.Subsystem):
     def OFF(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(0))
 
+    def ALN(self) -> None:
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(80))
+
     def HLD(self) -> None:
-        self.mainMotor.set_control(controls.TorqueCurrentFOC(30))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(20))
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.cmd.runOnce(
@@ -60,21 +63,15 @@ class Grabber(commands2.Subsystem):
         ).andThen(
             commands2.cmd.runOnce(lambda: print("went forward"))
         ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 30)
-        ).andThen(
-            commands2.cmd.runOnce(lambda: print("pass thresh 1"))
-        ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double <= 15)
-        ).andThen(
             commands2.cmd.runOnce(lambda: print("pass thresh 2"))
         ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 20)
+            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 40)
         ).andThen(
             commands2.cmd.runOnce(lambda: print("passed threshhold 3"))
         ).andThen(
             commands2.WaitCommand(.1)
         ).andThen(
-            commands2.cmd.runOnce(self.HLD)
+            commands2.cmd.runOnce(self.ALN)
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
@@ -94,5 +91,5 @@ class Grabber(commands2.Subsystem):
             intakeCmd.addRequirements(self)
             return intakeCmd
 
-    #def periodic(self) -> None:
-        #SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)
+    def periodic(self) -> None:
+        SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)

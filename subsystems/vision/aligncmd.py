@@ -41,7 +41,7 @@ class PIDAlignCMD(Command):
         SmartDashboard.putNumber("target_omega", speedy.omega)
         self.swerve.set_control(
             RobotCentric()
-                .with_rotational_rate(min(speedy.omega, math.pi/2))
+                .with_rotational_rate(min(speedy.omega, math.pi))
                 #.with_forward_perspective(ForwardPerspectiveValue.BLUE_ALLIANCE)\
                 .with_velocity_x(speedy.vx)
                 .with_velocity_y(speedy.vy)
