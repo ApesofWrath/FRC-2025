@@ -9,7 +9,7 @@ from wpimath.geometry import Transform2d, Pose2d, Twist2d
 from wpimath import units
 from pathplannerlib.path import PathConstraints, PathPlannerPath, Waypoint, IdealStartingState, GoalEndState
 from pathplannerlib.auto import AutoBuilder
-from wpilib import SmartDashboard, Field2d, DriverStation
+from wpilib import  Field2d, DriverStation, SmartDashboard
 
 import constants
 from subsystems.vision.lib import LimelightHelpers
@@ -110,11 +110,16 @@ class Limelight(commands2.Subsystem):
 
         path.preventFlipping = True
 
-        self.pathcmd = commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",True)).andThen(
-            AutoBuilder.followPath(path).andThen(
-                commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",False))))
+        self.pathcmd = AutoBuilder.followPath(path)#commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",True)).andThen(
+            #.andThen(
+                #commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",False))))
         self.pathcmd.addRequirements(self.drivetrain)
         self.pathcmd.schedule()
+
+    def adjustGyro(self, amount: float):
+        old_value = self.pigeon2.get_yaw(True).value
+        new_value = old_value + amount
+        self.pigeon2.set_yaw(new_value)
 
     def periodic(self) -> None:
         #self.close.setRobotPose(self.get_target(self.get_current(), constants.Direction.LEFT, False))
@@ -124,15 +129,20 @@ class Limelight(commands2.Subsystem):
         if DriverStation.isEnabled() and not self.imuset:
             self.imuset = True
             for name in constants.Limelight.kLimelightHostnames:
-                LimelightHelpers.set_imu_mode(name,4)
+                LimelightHelpers.set_imu_mode(name,2)
         elif DriverStation.isDisabled():
             for name in constants.Limelight.kLimelightHostnames:
-                LimelightHelpers.set_imu_mode(name,3)
-            if DriverStation.isFMSAttached() and not self.imuset:
+                LimelightHelpers.set_imu_mode(name,1)
+                LimelightHelpers.set_robot_orientation(
+                    name,
+                    self.pigeon2.get_yaw().value,
+                    0,0,0,0,0
+                )
+            if (DriverStation.isFMSAttached() or DriverStation.isDSAttached()) and not self.imuset:
                 self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
                 self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
 
-        SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
+        #SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
 
         if self.pigeon2.get_angular_velocity_z_world(False).value > 360:
             return
@@ -143,8 +153,10 @@ class Limelight(commands2.Subsystem):
         for future in concurrent.futures.as_completed(futures):
             estimate = future.result()
             if estimate and estimate.tag_count > 0:
-                self.drivetrain.add_vision_measurement(
-                    estimate.pose,
-                    utils.fpga_to_current_time(estimate.timestamp_seconds),
-                    self.std_dev_math(estimate)
-                )
+                pose = estimate.pose.relativeTo(self.drivetrain.get_state().pose)
+                if DriverStation.isDisabled() or math.sqrt(pose.x ** 2 + pose.y ** 2) <= 1.0:
+                    self.drivetrain.add_vision_measurement(
+                        estimate.pose,
+                        utils.fpga_to_current_time(estimate.timestamp_seconds),
+                        self.std_dev_math(estimate)
+                    )

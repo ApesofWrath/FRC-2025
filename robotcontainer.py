@@ -35,6 +35,8 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
+        SignalLogger.stop()
+
         self.robotDrive =  CommandSwerveDrivetrain(
             hardware.TalonFX,
             hardware.TalonFX,
@@ -93,6 +95,10 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
         NamedCommands.registerCommand("Grabber", cmd.runOnce(self.score.grabber.HLD))
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
+        NamedCommands.registerCommand("Align RD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Align LD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Align RU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Align LU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -151,7 +157,7 @@ class RobotContainer:
                         .with_rotational_rate(
                             #self.slewRateT.calculate(self.driverController.getRightX())
                             self.driverController.getRightX()
-                            * constants.Global.max_angular_rate * 1.5
+                            * constants.Global.max_angular_rate * 3
                             * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )
@@ -163,25 +169,11 @@ class RobotContainer:
             # slow
             (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
-            '''
-            # Run SysId routines when holding back and face buttons.
-            # Note that each routine should be run exactly once in a single log.
-            self.driverController.povLeft().onTrue(cmd.runOnce(SignalLogger.start))
+            self.driverController.povLeft().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(-0.1)))
+            self.driverController.povRight().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(0.1)))
+            self.driverController.povUp().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(-5)))
+            self.driverController.povDown().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(5)))
 
-            (self.driverController.start() & self.driverController.a()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.start() & self.driverController.b()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-            )
-            (self.driverController.start() & self.driverController.x()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.start() & self.driverController.y()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-            )
-            self.driverController.povRight().onTrue(cmd.runOnce(SignalLogger.stop))
-            '''
 
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
@@ -227,12 +219,12 @@ class RobotContainer:
             print("Binding config controller")
             # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
             (self.configController.leftTrigger()|self.configController.rightTrigger()).onTrue(self.score.position(constants.scorePositions.l1))
-            self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
+            #self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
             self.configController.a().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
             self.configController.b().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
             self.configController.x().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kForward))
             self.configController.y().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
-            self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
+            #self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
 
         if not utils.is_simulation():
             self.logger = Telemetry(constants.Global.max_speed)

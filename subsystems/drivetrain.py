@@ -159,7 +159,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                         self._rotation_characterization.with_rotational_rate(output)
                     ),
                     # also log the requested output for SysId
-                    SignalLogger.write_double("Rotational_Rate", output),
+                    # SignalLogger.write_double("Rotational_Rate", output),
                 ),
                 lambda log: None,
                 self,

@@ -6,7 +6,7 @@ from typing import Union, Tuple
 
 # wpilib
 import commands2
-from wpilib import SmartDashboard
+#from wpilib import SmartDashboard
 from wpimath import units
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog

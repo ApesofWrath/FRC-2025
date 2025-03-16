@@ -33,7 +33,7 @@ class PIDAlignCMD(Command):
         goalState = PathPlannerTrajectoryState()
         goalState.pose = self.goal
 
-        SmartDashboard.putNumberArray("align_target",[goalState.pose.x,goalState.pose.y,goalState.pose.rotation().degrees()])
+        #SmartDashboard.putNumberArray("align_target",[goalState.pose.x,goalState.pose.y,goalState.pose.rotation().degrees()])
         
         speedy = self.swerve.autonpid.calculateRobotRelativeSpeeds(self.swerve.get_state().pose,goalState)
         SmartDashboard.putNumber("target_vx", speedy.vx)

@@ -1,5 +1,5 @@
 from wpimath.units import degreesToRotations
-from wpilib import SmartDashboard
+#from wpilib import SmartDashboard
 import commands2
 
 import constants
@@ -34,7 +34,7 @@ class Score(commands2.Subsystem):
         self.disallowElevatorDecent = (26,55)
         self.elevator.limit(self.allowElevatorDecent)
 
-        SmartDashboard.putString("scoreStatus","nothing")
+        #SmartDashboard.putString("scoreStatus","nothing")
 
     def position(self, position: constants.scorePosition) -> commands2.Command:
         positionCommand = commands2.ParallelDeadlineGroup(
@@ -68,11 +68,11 @@ class Score(commands2.Subsystem):
 
     def l234(self, position: constants.scorePosition) -> commands2.Command:
         return commands2.SequentialCommandGroup(
-            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","elevator up")),
+            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","elevator up")),
             self.position(constants.scorePosition(elevator = position.elevator)),
-            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","rest of pose")),
+            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","rest of pose")),
             self.position(position),
-            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","outtake")),
+            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","outtake")),
             self.grabber.outtake(False).deadlineWith(
                 self.position(
                     constants.scorePosition(
@@ -84,10 +84,10 @@ class Score(commands2.Subsystem):
                     )
                 ),
             ),
-            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","returning to position")),
+            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","returning to position")),
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
-            commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","done")),
+            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","done")),
             commands2.cmd.runOnce(self.grabber.HLD)
         )
 

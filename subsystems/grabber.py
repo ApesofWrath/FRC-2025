@@ -3,7 +3,7 @@ import constants
 
 # wpi imports
 import commands2
-from wpilib import SmartDashboard
+#from wpilib import SmartDashboard
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -91,5 +91,5 @@ class Grabber(commands2.Subsystem):
             intakeCmd.addRequirements(self)
             return intakeCmd
 
-    def periodic(self) -> None:
-        SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)
+    #def periodic(self) -> None:
+        #SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)
