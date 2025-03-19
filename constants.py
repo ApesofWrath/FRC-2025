@@ -8,13 +8,24 @@ import commands2.cmd as cmd
 from wpimath.geometry import Transform2d
 from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
 from math import pi
-from pathplannerlib.controller import PPHolonomicDriveController
-from pathplannerlib.config import PIDConstants
+from wpilib import SmartDashboard
 
 def makeCommand(func):
     def cmdFn(*args, **kwargs):
         return cmd.runOnce(lambda: func(*args, **kwargs))
     return cmdFn
+
+# TODO: replace SmartDashboard calls in grabber, positionalSubsystem, score, aligncmd, vision
+class DebugSender():
+    def __init__(self,name,enable = True):
+        if enable:
+            self.nttentry = SmartDashboard.getEntry(name)
+            self.nttentry.setString("")
+            self.send = lambda data: self.nttentry.setValue(data)
+            self.__call__ = lambda data: cmd.runOnce(lambda: self.send(data))
+        else:
+            self.send = lambda data: None
+            self.__call__ = lambda data: None
 
 @dataclass
 class sysidConfig:

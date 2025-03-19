@@ -1,10 +1,10 @@
 # standard imports
 from constants import Climb as const
+from constants import DebugSender
 
 # wpi imports
 import commands2
 from wpilib import Servo
-#from wpilib import SmartDashboard
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -36,51 +36,39 @@ class Climb(commands2.Subsystem):
 
         self.voltage_req = controls.VoltageOut(0)
 
+        self.debug = DebugSender("climbstatus", False)
 
-        #SmartDashboard.putString("climbstatus","")
-        # start in and engadged(?)
+        # start in and engadged
         # unengadge servo and go out when the operator presses a button
         # engadge servo and go back in when the operator presses a diferent button
 
     def move(self, retracting: bool, voltage: float):
         if not retracting:
             return commands2.SequentialCommandGroup(
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","extend start")),
+                self.debug("extend start"),
                 commands2.cmd.runOnce(lambda: self.servo.set(retracting)),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","extend servo set")),
+                self.debug("extend servo set"),
                 commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(voltage))),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","extend voltage set")),
+                self.debug("extend voltage set"),
                 commands2.WaitUntilCommand(
                     lambda:
                         self.motor.get_position().value_as_double > const.unspoolTarget
                     
                 ),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","extend waited")),
+                self.debug("extend waited"),
                 commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","extend voltage zeroed"))
+                self.debug("extend voltage zeroed")
 
             )
         else:
             return commands2.SequentialCommandGroup(
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb start")),
+                self.debug("climb start"),
                 commands2.cmd.runOnce(lambda: self.servo.set(retracting)),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb servo set")),
+                self.debug("climb servo set"),
                 commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(voltage))),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb voltage set")),
-                commands2.WaitUntilCommand(
-                    lambda:
-                        self.motor.get_position().value_as_double < const.climbTarget
-                        #or (
-                        #    abs(self.motor.get_velocity().value_as_double) < 0.1 \
-                        #    and abs(self.motor.get_torque_current().value_as_double) > 29
-                        #)
-                ),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb waited")),
+                self.debug("climb voltage set"),
+                commands2.WaitUntilCommand(lambda: self.motor.get_position().value_as_double < const.climbTarget),
+                self.debug("climb waited"),
                 commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putString("climbstatus","climb voltage zeroed"))
+                self.debug("climb voltage zeroed")
             )
-
-    #def periodic(self):
-        #SmartDashboard.putNumber("climbpos",self.motor.get_position().value_as_double)
-        #SmartDashboard.putNumber("climbvel",self.motor.get_velocity().value_as_double)
-        #SmartDashboard.putNumber("climbtorque",self.motor.get_torque_current().value_as_double)
