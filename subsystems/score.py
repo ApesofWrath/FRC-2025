@@ -1,5 +1,4 @@
 from wpimath.units import degreesToRotations
-#from wpilib import SmartDashboard
 import commands2
 
 import constants
@@ -34,7 +33,7 @@ class Score(commands2.Subsystem):
         self.disallowElevatorDecent = (26,55)
         self.elevator.limit(self.allowElevatorDecent)
 
-        #SmartDashboard.putString("scoreStatus","nothing")
+        self.debug = constants.DebugSender("scoreStatus",False)
 
     def position(self, position: constants.scorePosition) -> commands2.Command:
         positionCommand = commands2.ParallelDeadlineGroup(
@@ -68,11 +67,11 @@ class Score(commands2.Subsystem):
 
     def l234(self, position: constants.scorePosition) -> commands2.Command:
         return commands2.SequentialCommandGroup(
-            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","elevator up")),
+            self.debug("elevator up"),
             self.position(constants.scorePosition(elevator = position.elevator)),
-            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","rest of pose")),
+            self.debug("rest of pose"),
             self.position(position),
-            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","outtake")),
+            self.debug("outtake"),
             self.grabber.outtake(False).deadlineWith(
                 self.position(
                     constants.scorePosition(
@@ -84,10 +83,10 @@ class Score(commands2.Subsystem):
                     )
                 ),
             ),
-            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","returning to position")),
+            self.debug("returning to position"),
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
-            #commands2.cmd.runOnce(lambda: SmartDashboard.putString("scoreStatus","done")),
+            self.debug("done"),
             commands2.cmd.runOnce(self.grabber.HLD)
         )
 
@@ -107,7 +106,6 @@ class Score(commands2.Subsystem):
             self.wrist.limit(self.somewhatAllowGrabberRotationFront)
         elif isArmSomewhatExtendedBack:
             self.wrist.limit(self.somewhatAllowGrabberRotationBack)
-        #if not (isArmExtendedBack or isArmExtendedFront or isArmSomewhatExtendedBack or isArmSomewhatExtendedFront or isElevatorUp):
         elif isArmSpecialExtension:
             self.wrist.limit(self.disallowGrabberRotation)
 

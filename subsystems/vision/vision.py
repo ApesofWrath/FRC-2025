@@ -5,7 +5,7 @@ from typing import List
 import commands2
 from phoenix6 import utils
 from phoenix6.hardware import Pigeon2
-from wpimath.geometry import Transform2d, Pose2d, Twist2d
+from wpimath.geometry import Transform2d, Pose2d
 from wpimath import units
 from pathplannerlib.path import PathConstraints, PathPlannerPath, Waypoint, IdealStartingState, GoalEndState
 from pathplannerlib.auto import AutoBuilder
@@ -29,16 +29,12 @@ class Limelight(commands2.Subsystem):
         
         self.pathcmd = commands2.Command()
         self.target = Pose2d()
-
         self.targetOnAField = Field2d()
-        self.close = Field2d()
-        self.delta = Twist2d()
 
         self.imuset = False
 
         SmartDashboard.putData("pathTarget",self.targetOnAField)
         self.tpe = concurrent.futures.ThreadPoolExecutor()
-        SmartDashboard.putBoolean("pathing",False)
 
     def fetch_limelight_measurements(self, LLHostname: str):
         """
@@ -110,9 +106,7 @@ class Limelight(commands2.Subsystem):
 
         path.preventFlipping = True
 
-        self.pathcmd = AutoBuilder.followPath(path)#commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",True)).andThen(
-            #.andThen(
-                #commands2.cmd.runOnce(lambda: SmartDashboard.putBoolean("pathing",False))))
+        self.pathcmd = AutoBuilder.followPath(path)
         self.pathcmd.addRequirements(self.drivetrain)
         self.pathcmd.schedule()
 
@@ -122,9 +116,6 @@ class Limelight(commands2.Subsystem):
         self.pigeon2.set_yaw(new_value)
 
     def periodic(self) -> None:
-        #self.close.setRobotPose(self.get_target(self.get_current(), constants.Direction.LEFT, False))
-        #SmartDashboard.putData("target",self.close)
-
         # DO IMU MODE 3 WHEN DISSABLE AND 4 OTHERWISE
         if DriverStation.isEnabled() and not self.imuset:
             self.imuset = True
@@ -141,8 +132,6 @@ class Limelight(commands2.Subsystem):
             if (DriverStation.isFMSAttached() or DriverStation.isDSAttached()) and not self.imuset:
                 self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
                 self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
-
-        #SmartDashboard.putNumberArray("delt",[self.delta.dx,self.delta.dy,self.delta.dtheta_degrees])
 
         if self.pigeon2.get_angular_velocity_z_world(False).value > 360:
             return

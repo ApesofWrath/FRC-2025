@@ -15,17 +15,27 @@ def makeCommand(func):
         return cmd.runOnce(lambda: func(*args, **kwargs))
     return cmdFn
 
-# TODO: replace SmartDashboard calls in grabber, positionalSubsystem, score, aligncmd, vision
 class DebugSender():
-    def __init__(self,name,enable = True):
+    def __init__(self, name, enable = True, datafn = None):
         if enable:
             self.nttentry = SmartDashboard.getEntry(name)
             self.nttentry.setString("")
-            self.send = lambda data: self.nttentry.setValue(data)
-            self.__call__ = lambda data: cmd.runOnce(lambda: self.send(data))
+            if datafn is None:
+                self.send = lambda data: self.nttentry.setValue(data)
+                self.__call__ = lambda data: cmd.runOnce(lambda: self.send(data))
+            else:
+                self.send = lambda: self.nttentry.setValue(datafn())
+                self.__call__ = lambda: cmd.runOnce(self.send)
         else:
-            self.send = lambda data: None
-            self.__call__ = lambda data: None
+            if datafn is None:
+                self.send = lambda data: None
+                self.__call__ = lambda data: None
+            else:
+                self.send = lambda: None
+                self.__call__ = lambda: None
+
+    def __call__(self, *args, **kwds):
+        pass
 
 @dataclass
 class sysidConfig:
