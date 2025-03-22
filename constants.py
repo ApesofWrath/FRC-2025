@@ -168,7 +168,7 @@ class Arm:
     encoderConfig = configs.CANcoderConfiguration() \
         .with_magnet_sensor(
             configs.MagnetSensorConfigs() \
-                .with_magnet_offset(-0.055664) \
+                .with_magnet_offset(-0.150634765625) \
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )

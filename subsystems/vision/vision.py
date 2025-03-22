@@ -32,6 +32,7 @@ class Limelight(commands2.Subsystem):
         self.targetOnAField = Field2d()
 
         self.imuset = False
+        self.posset = False
 
         SmartDashboard.putData("pathTarget",self.targetOnAField)
         self.tpe = concurrent.futures.ThreadPoolExecutor()
@@ -129,9 +130,10 @@ class Limelight(commands2.Subsystem):
                     self.pigeon2.get_yaw().value,
                     0,0,0,0,0
                 )
-            if (DriverStation.isFMSAttached() or DriverStation.isDSAttached()) and not self.imuset:
+            if (DriverStation.isFMSAttached() or DriverStation.isDSAttached()) and not self.posset:
                 self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
                 self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
+                self.posset = True
 
         if self.pigeon2.get_angular_velocity_z_world(False).value > 360:
             return
