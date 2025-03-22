@@ -63,11 +63,15 @@ class Limelight(commands2.Subsystem):
         return current.nearest(list(constants.Limelight.kAlignmentTargets.values()))
 
     def update_target(self, right, high) -> Pose2d:
-        target = self.get_closest_tag(self.get_current())
+        current = self.get_current()
+        target = self.get_closest_tag(current)
+
+        frontForward = abs(current.log(target).dtheta) < abs(current.log(target.transformBy(Transform2d(0,0,math.pi))).dtheta)
+
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
             units.inchesToMeters(constants.Limelight.strafeDistanceRight if right else constants.Limelight.strafeDistanceLeft),
-            0
+            math.pi * (not frontForward)
         )
         new_target = target.transformBy(offset)
         self.targetOnAField.setRobotPose(new_target)
