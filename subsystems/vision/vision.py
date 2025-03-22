@@ -30,8 +30,8 @@ class Limelight(commands2.Subsystem):
         self.pathcmd = commands2.Command()
         self.target = Pose2d()
         self.targetOnAField = Field2d()
+        self.frontForward = True
 
-        self.imuset = False
         self.posset = False
 
         SmartDashboard.putData("pathTarget",self.targetOnAField)
@@ -42,11 +42,11 @@ class Limelight(commands2.Subsystem):
         Add vision measurement to MegaTag2
         """
 
-        LimelightHelpers.set_robot_orientation(
+        '''LimelightHelpers.set_robot_orientation(
             LLHostname,
             self.pigeon2.get_yaw().value,
             0,0,0,0,0
-        )
+        )'''
 
         # get botpose estimate with origin on blue side of field
         mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(LLHostname)
@@ -62,21 +62,20 @@ class Limelight(commands2.Subsystem):
     def get_closest_tag(self, current: Pose2d):
         return current.nearest(list(constants.Limelight.kAlignmentTargets.values()))
 
-    def update_target(self, right, high) -> Pose2d:
+    def update_target(self, side: constants.Direction, high) -> Pose2d:
         current = self.get_current()
         target = self.get_closest_tag(current)
 
-        frontForward = abs(current.log(target).dtheta) < abs(current.log(target.transformBy(Transform2d(0,0,math.pi))).dtheta)
+        self.frontForward = abs(current.log(target).dtheta) < abs(current.log(target.transformBy(Transform2d(0,0,math.pi))).dtheta)
 
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
-            units.inchesToMeters(constants.Limelight.strafeDistanceRight if right else constants.Limelight.strafeDistanceLeft),
-            math.pi * (not frontForward)
+            units.inchesToMeters(constants.Limelight.strafe[side]),
+            math.pi * (not self.frontForward)
         )
-        new_target = target.transformBy(offset)
-        self.targetOnAField.setRobotPose(new_target)
+        self.target = target.transformBy(offset)
+        self.targetOnAField.setRobotPose(self.target)
         SmartDashboard.putData("pathTarget",self.targetOnAField)
-        self.target = new_target
 
     def std_dev_math(self, estimate):
         if estimate.tag_count == 0:
@@ -121,28 +120,35 @@ class Limelight(commands2.Subsystem):
         self.pigeon2.set_yaw(new_value)
 
     def periodic(self) -> None:
-        # DO IMU MODE 3 WHEN DISSABLE AND 4 OTHERWISE
-        if DriverStation.isEnabled() and not self.imuset:
-            self.imuset = True
+        # DO IMU MODE 3 WHEN DISSABLE AND 2 OTHERWISE
+        if DriverStation.isEnabled():
             for name in constants.Limelight.kLimelightHostnames:
-                LimelightHelpers.set_imu_mode(name,2)
-        elif DriverStation.isDisabled():
-            for name in constants.Limelight.kLimelightHostnames:
-                LimelightHelpers.set_imu_mode(name,1)
+                LimelightHelpers.set_imu_mode(name,4)
                 LimelightHelpers.set_robot_orientation(
                     name,
-                    self.pigeon2.get_yaw().value,
+                    self.drivetrain.get_state().pose.rotation().degrees(),
                     0,0,0,0,0
                 )
-            if (DriverStation.isFMSAttached() or DriverStation.isDSAttached()) and not self.posset:
-                self.pigeon2.set_yaw(((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90)
-                self.drivetrain.reset_pose(Pose2d(0,0,(DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * math.pi-(math.pi/2)))
+        elif DriverStation.isDisabled():
+            if not self.posset:
+                for name in constants.Limelight.kLimelightHostnames:
+                    LimelightHelpers.set_imu_mode(name,1)
+                    LimelightHelpers.set_robot_orientation(
+                        name,
+                        ((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90,
+                        0,0,0,0,0
+                    )
                 self.posset = True
+            else:
+                for name in constants.Limelight.kLimelightHostnames:
+                    LimelightHelpers.set_imu_mode(name,3)
+                llresult = self.fetch_limelight_measurements("limelight-foe")
+                if llresult is not None:
+                    self.pigeon2.set_yaw(llresult.pose.rotation().degrees())
+                    self.drivetrain.reset_pose(llresult.pose)
 
         if self.pigeon2.get_angular_velocity_z_world(False).value > 360:
             return
-
-        self.fetch_limelight_measurements("dsa")
 
         futures = [ self.tpe.submit(self.fetch_limelight_measurements, hn) for hn in constants.Limelight.kLimelightHostnames ]
         for future in concurrent.futures.as_completed(futures):

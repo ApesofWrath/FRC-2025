@@ -1,5 +1,6 @@
 # project imports
 import constants
+from constants import Direction
 from subsystems.vision.vision import Limelight
 from subsystems.score import Score
 from subsystems.climb import Climb
@@ -140,7 +141,7 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = True
+        alwaysBindAll = False
 
         if self.driverController.isConnected() or alwaysBindAll:
             print("Binding driver controller")
@@ -197,10 +198,11 @@ class RobotContainer:
                 cmd.runOnce(lambda: self.limelight.update_target(right, high)),
                 PIDAlignCMD(self.robotDrive,self.limelight)
             ))
-            bindalign(self.driverController.a(), False, False)
-            bindalign(self.driverController.b(), True, False)
-            bindalign(self.driverController.x(), False, True)
-            bindalign(self.driverController.y(), True, True)
+            
+            bindalign(self.driverController.a(), Direction.LEFT, False)
+            bindalign(self.driverController.b(), Direction.RIGHT, False)
+            bindalign(self.driverController.x(), Direction.LEFT, True)
+            bindalign(self.driverController.y(), Direction.RIGHT, True)
 
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
