@@ -57,12 +57,13 @@ class Direction(enum.Enum):
 class Limelight:
     kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
-    strafeDistanceLeft: units.inches = -8.5
-    strafeDistanceRight: units.inches = 5
+
+    strafe: dict[units.inches] = {
+        Direction.LEFT: 11,
+        Direction.RIGHT: -2.5
+    }
 
     class precise:
-        move_p = 1
-        spin_p = 2
         xy_tolerance: units.meters = 0.025
         theta_tolerance: units.degrees = 0.25
 
@@ -86,19 +87,19 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 14
+        reefDistance = 19
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 4,
-        reefDistance = 14
+        reefDistance = 19
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 14
+        reefDistance = 19
     )
     l4 = scorePosition(
         wrist = 0,
