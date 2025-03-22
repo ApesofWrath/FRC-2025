@@ -87,19 +87,19 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 19
+        reefDistance = 23
     )
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 4,
-        reefDistance = 19
+        reefDistance = 17.5
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 19
+        reefDistance = 17.5
     )
     l4 = scorePosition(
         wrist = 0,

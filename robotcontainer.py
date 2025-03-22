@@ -141,7 +141,7 @@ class RobotContainer:
         factories on commands2.button.CommandGenericHID or one of its
         subclasses (commands2.button.CommandJoystick or command2.button.CommandXboxController).
         """
-        alwaysBindAll = False
+        alwaysBindAll = True
 
         if self.driverController.isConnected() or alwaysBindAll:
             print("Binding driver controller")
