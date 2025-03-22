@@ -57,8 +57,8 @@ class Direction(enum.Enum):
 class Limelight:
     kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
-    strafeDistanceLeft = -8.5
-    strafeDistanceRight = 5
+    strafeDistanceLeft: units.inches = -8.5
+    strafeDistanceRight: units.inches = 5
 
     class precise:
         move_p = 1
