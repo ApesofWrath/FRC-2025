@@ -94,11 +94,13 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2))
         NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
-        NamedCommands.registerCommand("Grabber", cmd.runOnce(self.score.grabber.HLD))
+        NamedCommands.registerCommand("Grabber HLD", cmd.runOnce(self.score.grabber.HLD))
+        NamedCommands.registerCommand("Grabber REV", cmd.runOnce(self.score.grabber.REV))
+        NamedCommands.registerCommand("Grabber OFF", cmd.runOnce(self.score.grabber.OFF))
+        NamedCommands.registerCommand("Grabber FWD", cmd.runOnce(self.score.grabber.FWD))
+        NamedCommands.registerCommand("Human player intake position", self.score.position(constants.scorePositions.hpintake))
+        NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintake))
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
-        NamedCommands.registerCommand("Grabber REV", commands2.cmd.runOnce(self.score.grabber.REV))
-        NamedCommands.registerCommand("Grabber OFF", commands2.cmd.runOnce(self.score.grabber.OFF))
-        NamedCommands.registerCommand("Grabber FWD", commands2.cmd.runOnce(self.score.grabber.FWD))
         NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
         NamedCommands.registerCommand("Align RD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
         NamedCommands.registerCommand("Align LD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
@@ -219,6 +221,9 @@ class RobotContainer:
             # climb
             self.operatorController.leftTrigger().onTrue(self.score.position(constants.scorePosition(arm=155)))
             self.operatorController.rightTrigger().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
+
+            # for auton testing
+            self.operatorController.povDown().onTrue(self.score.position(constants.scorePositions.hpintake))
 
         if self.configController.isConnected():
             print("Binding config controller")
