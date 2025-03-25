@@ -24,8 +24,8 @@ class Score(commands2.Subsystem):
         self.disallowGrabberRotation = (-2, 2)
         self.wrist.limit(self.disallowGrabberRotation)
 
-        self.allowArmRetraction = (-7,160)
-        self.disallowArmRetractionFront = (-7,35)
+        self.allowArmRetraction = (-14.25,160)
+        self.disallowArmRetractionFront = (-14.25,35)
         self.disallowArmRetractionBack = (142,187)
         self.arm.limit(self.allowArmRetraction)
 
@@ -72,18 +72,14 @@ class Score(commands2.Subsystem):
             self.debug("rest of pose"),
             self.position(position),
             self.debug("outtake"),
-            self.grabber.outtake(False).deadlineWith(
-                self.position(
-                    constants.scorePosition(
-                        wrist = -20,
-                        elevator = position.elevator - 3
-                    ) if position is not constants.scorePositions.l4 else \
-                    constants.scorePosition(
-                        elevator = position.elevator - 5
-                    )
-                ),
+            self.position(
+                constants.scorePosition(
+                    elevator = position.elevator - (3 if position is not constants.scorePositions.l4 else 8)
+                )
             ),
+            self.grabber.outtake(),
             self.debug("returning to position"),
+            self.position(constants.scorePosition(elevator = position.elevator - 14)) if position is constants.scorePositions.l4 else commands2.cmd.none(),
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
             self.debug("done"),

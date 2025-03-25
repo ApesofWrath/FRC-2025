@@ -47,7 +47,7 @@ class Grabber(commands2.Subsystem):
         self.mainMotor.set_control(controls.VelocityVoltage(35))
 
     def REV(self) -> None:
-        self.mainMotor.set_control(controls.VelocityVoltage(-10))
+        self.mainMotor.set_control(controls.VelocityVoltage(-15))
 
     def OFF(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(0))

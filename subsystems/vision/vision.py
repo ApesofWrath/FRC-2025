@@ -55,6 +55,16 @@ class Limelight(commands2.Subsystem):
         if mega_tag2.tag_count > 0:
             # set and add vision measurement
             return mega_tag2
+        
+    def fetch_limelight_measurements_mt1(self, LLHostname: str):
+
+        # get botpose estimate with origin on blue side of field
+        mega_tag1 = LimelightHelpers.get_botpose_estimate_wpiblue(LLHostname)
+
+        # if we see tags
+        if mega_tag1.tag_count > 0:
+            # set and add vision measurement
+            return mega_tag1
 
     def get_current(self) -> Pose2d:
         return self.drivetrain.get_state().pose
@@ -80,9 +90,9 @@ class Limelight(commands2.Subsystem):
     def std_dev_math(self, estimate):
         if estimate.tag_count == 0:
             return 0.5, 0.5, 0.5
-
+        return 0.1, 0.1, math.inf
         avg_dist = sum(f.dist_to_camera for f in estimate.raw_fiducials) / estimate.tag_count
-        factor = 1 + (avg_dist ** 2 / 30)
+        factor = .25 + (avg_dist ** 2 / 15)
 
         return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
 
@@ -130,19 +140,30 @@ class Limelight(commands2.Subsystem):
                     0,0,0,0,0
                 )
         elif DriverStation.isDisabled():
+            # TODO: refactor
             if not self.posset:
                 for name in constants.Limelight.kLimelightHostnames:
                     LimelightHelpers.set_imu_mode(name,1)
-                    LimelightHelpers.set_robot_orientation(
-                        name,
-                        ((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)-90,
-                        0,0,0,0,0
-                    )
-                self.posset = True
+                    try:
+                        llresult = min(filter(lambda r: r is not None, [ self.fetch_limelight_measurements_mt1(ll) for ll in constants.Limelight.kLimelightHostnames ]), key = lambda r: r.avg_tag_dist)
+                    except ValueError:
+                        llresult = None
+                    if llresult is not None:
+                        self.pigeon2.set_yaw(llresult.pose.rotation().degrees())
+                        self.drivetrain.reset_pose(llresult.pose)
+                        LimelightHelpers.set_robot_orientation(
+                            name,
+                            llresult.pose.rotation().degrees(),
+                            0,0,0,0,0
+                        )
+                # self.posset = True
             else:
                 for name in constants.Limelight.kLimelightHostnames:
                     LimelightHelpers.set_imu_mode(name,3)
-                llresult = self.fetch_limelight_measurements("limelight-foe")
+                try:
+                    llresult = min(filter(lambda r: r is not None, [ self.fetch_limelight_measurements(ll) for ll in constants.Limelight.kLimelightHostnames ]), key = lambda r: r.avg_tag_dist)
+                except ValueError:
+                    llresult = None
                 if llresult is not None:
                     self.pigeon2.set_yaw(llresult.pose.rotation().degrees())
                     self.drivetrain.reset_pose(llresult.pose)

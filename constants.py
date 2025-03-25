@@ -59,8 +59,8 @@ class Limelight:
     kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
 
     strafe: dict[units.inches] = {
-        Direction.LEFT: 11,
-        Direction.RIGHT: -2.5
+        Direction.LEFT: 9,
+        Direction.RIGHT: -4
     }
 
     class precise:
@@ -75,8 +75,8 @@ class scorePositions:
     )
     intake = scorePosition(
         wrist = -90,
-        arm = -6.75,
-        elevator = 2
+        arm = -14,
+        elevator = 5.5
     )
     hpintake = scorePosition(
         wrist = -90,
@@ -92,14 +92,14 @@ class scorePositions:
     l2 = scorePosition(
         wrist = 0,
         arm = 40,
-        elevator = 4,
-        reefDistance = 17.5
+        elevator = 6,
+        reefDistance = 15
     )
     l3 = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 17.5
+        reefDistance = 15
     )
     l4 = scorePosition(
         wrist = 0,
