@@ -216,10 +216,10 @@ class RobotContainer:
             self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle),commands2.cmd.runOnce(self.score.grabber.HLD)))
 
             # score at various heights
-            self.operatorController.a().onTrue(self.score.l1())
-            self.operatorController.b().onTrue(self.score.l234(constants.scorePositions.l2))
-            self.operatorController.x().onTrue(self.score.l234(constants.scorePositions.l3))
-            self.operatorController.y().onTrue(self.score.l234(constants.scorePositions.l4))
+            self.operatorController.a().onTrue(commands2.ConditionalCommand(self.score.l1(constants.scorePositions.l1f),self.score.l1(constants.scorePositions.l1b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.b().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l2f),self.score.l234(constants.scorePositions.l2b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.x().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l3f),self.score.l234(constants.scorePositions.l3b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.y().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l4f),self.score.l234(constants.scorePositions.l4b),lambda: self.limelight.__getattribute__("frontForward")))
 
             # climb
             self.operatorController.leftTrigger().onTrue(self.score.position(constants.scorePosition(arm=155)))

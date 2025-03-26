@@ -56,7 +56,7 @@ class Direction(enum.Enum):
 
 class Limelight:
     kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
-    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
+    kAlignmentTargets = [ AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) ]
 
     strafe: dict[units.inches] = {
         Direction.LEFT: 9,
@@ -83,27 +83,51 @@ class scorePositions:
         arm = 55,
         elevator = 18
     )
-    l1 = scorePosition(
+    l1f = scorePosition(
         wrist = -90,
         arm = 25,
         elevator = 11,
         reefDistance = 23
     )
-    l2 = scorePosition(
+    l2f = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 6,
         reefDistance = 15
     )
-    l3 = scorePosition(
+    l3f = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
         reefDistance = 15
     )
-    l4 = scorePosition(
+    l4f = scorePosition(
         wrist = 0,
         arm = 25,
+        elevator = 54,
+        reefDistance = 23
+    )
+    l1b = scorePosition(
+        wrist = 90,
+        arm = 155,
+        elevator = 11,
+        reefDistance = 23
+    )
+    l2b = scorePosition(
+        wrist = 0,
+        arm = 140,
+        elevator = 6,
+        reefDistance = 15
+    )
+    l3b = scorePosition(
+        wrist = 0,
+        arm = 140,
+        elevator = 21,
+        reefDistance = 15
+    )
+    l4b = scorePosition(
+        wrist = 0,
+        arm = 155,
         elevator = 54,
         reefDistance = 23
     )

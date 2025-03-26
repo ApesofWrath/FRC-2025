@@ -5,6 +5,8 @@ import constants
 from subsystems.positionalSubsystem import PositionalSubsystem
 from subsystems.grabber import Grabber
 
+from typing import Callable
+
 class Score(commands2.Subsystem):
     def __init__(
             self,
@@ -34,6 +36,7 @@ class Score(commands2.Subsystem):
         self.elevator.limit(self.allowElevatorDecent)
 
         self.debug = constants.DebugSender("scoreStatus",False)
+        self.alignDebug = constants.DebugSender("backwards")
 
     def position(self, position: constants.scorePosition) -> commands2.Command:
         positionCommand = commands2.ParallelDeadlineGroup(
@@ -57,9 +60,9 @@ class Score(commands2.Subsystem):
         intakeCmd.addRequirements(self)
         return intakeCmd
 
-    def l1(self) -> commands2.Command:
+    def l1(self, position: constants.scorePosition) -> commands2.Command:
         return commands2.SequentialCommandGroup(
-            self.position(constants.scorePositions.l1),
+            self.position(position),
             self.grabber.outtake(),
             self.position(constants.scorePositions.idle),
             commands2.cmd.runOnce(self.grabber.HLD)
@@ -74,12 +77,12 @@ class Score(commands2.Subsystem):
             self.debug("outtake"),
             self.position(
                 constants.scorePosition(
-                    elevator = position.elevator - (3 if position is not constants.scorePositions.l4 else 8)
+                    elevator = position.elevator - (3 if position.elevator != constants.scorePositions.l4f.elevator else 8)
                 )
             ),
             self.grabber.outtake(),
             self.debug("returning to position"),
-            self.position(constants.scorePosition(elevator = position.elevator - 14)) if position is constants.scorePositions.l4 else commands2.cmd.none(),
+            self.position(constants.scorePosition(elevator = position.elevator - 14)) if position.elevator == constants.scorePositions.l4f.elevator else commands2.cmd.none(),
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
             self.debug("done"),

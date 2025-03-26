@@ -22,7 +22,7 @@ class Limelight(commands2.Subsystem):
         self.pigeon2 = Pigeon2(constants.TunerConstants._pigeon_id, "Drivetrain")
         self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
 
-        for id,target in constants.Limelight.kAlignmentTargets.items():
+        for target,id in zip(constants.Limelight.kAlignmentTargets,range(len(constants.Limelight.kAlignmentTargets))):
             field = Field2d()
             field.setRobotPose(target)
             SmartDashboard.putData("alignTarget " + str(id), field)
@@ -79,7 +79,7 @@ class Limelight(commands2.Subsystem):
         self.frontForward = abs(current.log(target).dtheta) < abs(current.log(target.transformBy(Transform2d(0,0,math.pi))).dtheta)
 
         offset = Transform2d(
-            -units.inchesToMeters(constants.scorePositions.l4.reefDistance if high else constants.scorePositions.l3.reefDistance),
+            -units.inchesToMeters(constants.scorePositions.l4f.reefDistance if high else constants.scorePositions.l3f.reefDistance),
             units.inchesToMeters(constants.Limelight.strafe[side]),
             math.pi * (not self.frontForward)
         )
