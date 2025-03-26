@@ -90,11 +90,11 @@ class RobotContainer:
         self.climb = Climb()
         
         # The robot's auton commands
-        NamedCommands.registerCommand("Score L1", self.score.l1())
-        NamedCommands.registerCommand("Score L1 no outtake", self.score.position(constants.scorePositions.l1))
-        NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2))
-        NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
-        NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
+        NamedCommands.registerCommand("Score L1", self.score.l1(constants.scorePositions.l1f))
+        NamedCommands.registerCommand("Score L1 no outtake", self.score.position(constants.scorePositions.l1f))
+        NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2f))
+        NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3f))
+        NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4f))
         NamedCommands.registerCommand("Grabber HLD", cmd.runOnce(self.score.grabber.HLD))
         NamedCommands.registerCommand("Grabber REV", cmd.runOnce(self.score.grabber.REV))
         NamedCommands.registerCommand("Grabber OFF", cmd.runOnce(self.score.grabber.OFF))
@@ -103,10 +103,11 @@ class RobotContainer:
         NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintake))
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
         NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
-        NamedCommands.registerCommand("Align RD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
-        NamedCommands.registerCommand("Align LD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
-        NamedCommands.registerCommand("Align RU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
-        NamedCommands.registerCommand("Align LU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Target RD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, True)))
+    #   NamedCommands.registerCommand("Align LD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
+    #  NamedCommands.registerCommand("Align RU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
+    #    NamedCommands.registerCommand("Align LU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Align",PIDAlignCMD(self.robotDrive,self.limelight))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)

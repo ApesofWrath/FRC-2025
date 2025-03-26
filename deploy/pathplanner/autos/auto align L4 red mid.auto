@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Grabber HLD"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "for auto align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Target RD"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": true
+}
