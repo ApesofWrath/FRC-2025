@@ -69,8 +69,8 @@ class Limelight(commands2.Subsystem):
     def get_current(self) -> Pose2d:
         return self.drivetrain.get_state().pose
 
-    def get_closest_tag(self, current: Pose2d):
-        return current.nearest(list(constants.Limelight.kAlignmentTargets.values()))
+    def get_closest_tag(self, current: Pose2d): # do not inline it on pain of ow
+        return current.nearest(constants.Limelight.kAlignmentTargets)
 
     def update_target(self, side: constants.Direction, high) -> Pose2d:
         current = self.get_current()
