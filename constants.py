@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import enum
+from enum import Enum
 from typing import Union
 from phoenix6 import CANBus, configs, signals, swerve
 from wpimath.units import inchesToMeters, rotationsToRadians
@@ -50,18 +50,16 @@ class scorePosition:
     elevator: Union[units.inches,None] = None
     reefDistance: Union[units.inches,None] = None
 
-class Direction(enum.Enum):
-    LEFT: bool = False
-    RIGHT: bool = True
+class Direction(Enum):
+    LEFT: float = 8.232
+    RIGHT: float = -4.768
+    def distance(self, frontforwards):
+        realside = self if frontforwards else (self.LEFT if self == self.RIGHT else self.RIGHT)
+        return realside.value * (frontforwards * 2 - 1)
 
 class Limelight:
     kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
     kAlignmentTargets = [ AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) ]
-
-    strafe: dict[units.inches] = {
-        Direction.LEFT: 9,
-        Direction.RIGHT: -4
-    }
 
     class precise:
         xy_tolerance: units.meters = 0.025

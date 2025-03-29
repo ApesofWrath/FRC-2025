@@ -80,7 +80,7 @@ class Limelight(commands2.Subsystem):
 
         offset = Transform2d(
             -units.inchesToMeters(constants.scorePositions.l4f.reefDistance if high else constants.scorePositions.l3f.reefDistance),
-            units.inchesToMeters(constants.Limelight.strafe[side]),
+            units.inchesToMeters(side.distance(self.frontForward)),
             math.pi * (not self.frontForward)
         )
         self.target = target.transformBy(offset)
