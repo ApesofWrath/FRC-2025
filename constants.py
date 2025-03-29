@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Union
-from phoenix6 import CANBus, configs, signals, swerve
-from wpimath.units import inchesToMeters, rotationsToRadians
-from wpimath import units
-import commands2.cmd as cmd
-from wpimath.geometry import Transform2d
-from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
+from typing import Union, Callable
 from math import pi
-from wpilib import SmartDashboard
 
-def makeCommand(func):
+from wpilib import SmartDashboard
+from wpimath.geometry import Transform2d
+from wpimath import units
+from wpimath.units import inchesToMeters, rotationsToRadians
+from commands2 import cmd, Command
+from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
+from phoenix6 import CANBus, configs, signals, swerve
+
+def makeCommand(func) -> Command:
     def cmdFn(*args, **kwargs):
         return cmd.runOnce(lambda: func(*args, **kwargs))
     return cmdFn
@@ -51,9 +52,9 @@ class scorePosition:
     reefDistance: Union[units.inches,None] = None
 
 class Direction(Enum):
-    LEFT: float = 8.232
-    RIGHT: float = -4.768
-    def distance(self, frontforwards):
+    LEFT: units.inches = 8.232
+    RIGHT: units.inches = -4.768
+    def distance(self, frontforwards) -> units.inches:
         realside = self if frontforwards else (self.LEFT if self == self.RIGHT else self.RIGHT)
         return realside.value * (frontforwards * 2 - 1)
 
@@ -260,19 +261,20 @@ class Wrist:
 
 class Grabber:
     id: int = 17
-    FWDvelocity: int = 8
-    REVvelocity: int = -5
-    HLDvelocity: int = 4
-    currentLimit: int = 80
+    FWDvelocity: units.turns_per_second = 35
+    REVvelocity: units.turns_per_second = -15
+    ALNvelovity: units.amperes = 80
+    HLDvelocity: units.amperes = 20
+    currentLimit: units.amperes = 80
 
 class Climb:
     id: int = 21
     servoChannel: int = 1
-    currentLimit: int = 80
-    unspoolVoltage: int = 3
-    unspoolTarget: int = 90.6
-    climbVoltage: int = -10
-    climbTarget: int = -145
+    currentLimit: units.amperes = 80
+    unspoolVoltage: units.volts = 3
+    unspoolTarget: units.degrees = 90.6
+    climbVoltage: units.volts = -10
+    climbTarget: units.degrees = -145
 
 class TunerConstants:
     """

@@ -44,23 +44,23 @@ class Grabber(commands2.Subsystem):
         self.debug = constants.DebugSender("grabberVoltage")
 
     def FWD(self) -> None:
-        self.mainMotor.set_control(controls.VelocityVoltage(35))
+        self.mainMotor.set_control(controls.VelocityVoltage(constants.Grabber.FWDvelocity))
 
     def REV(self) -> None:
-        self.mainMotor.set_control(controls.VelocityVoltage(-15))
+        self.mainMotor.set_control(controls.VelocityVoltage(constants.Grabber.REVvelocity))
 
     def OFF(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(0))
 
     def ALN(self) -> None:
-        self.mainMotor.set_control(controls.TorqueCurrentFOC(80))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(constants.Grabber.ALNvelovity))
 
     def HLD(self) -> None:
-        self.mainMotor.set_control(controls.TorqueCurrentFOC(20))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(constants.Grabber.HLDvelocity))
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.cmd.runOnce(
-            self.FWD # TODO: this sucks use a rolling buffer with collections.deque
+            self.FWD
         ).andThen(
             commands2.cmd.runOnce(lambda: print("went forward"))
         ).andThen(
