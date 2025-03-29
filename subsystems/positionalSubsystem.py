@@ -82,6 +82,7 @@ class PositionalSubsystem(commands2.Subsystem):
         self.lim_target = DebugSender(self.getName()+"LimTarget",False,)
         self.pos_debug = DebugSender(self.getName()+"Position",False,self.get)
 
+        self.enabled = True
         self.prevGoal = None
         self.set(initialTarget)
 
@@ -92,7 +93,7 @@ class PositionalSubsystem(commands2.Subsystem):
         return self.sys_id_routine.dynamic(direction)
 
     def set(self, target: Union[units.inches,units.degrees,None]):
-        if target is not None:
+        if target is not None and self.enabled:
             self.target: units.turns = target*self.conversionRate
     
     def get(self, useTurns: bool = False):
@@ -104,12 +105,20 @@ class PositionalSubsystem(commands2.Subsystem):
     def limit(self, newLimits: Tuple[units.degrees]):
         self.limits = (newLimits[0]*self.conversionRate,newLimits[1]*self.conversionRate)
     
+    def setEnabled(self, state: bool):
+        if state:
+            self.prevGoal = None
+            self.enabled = True
+        else:
+            self.enabled = False
+            self.motor.set_control(controls.VoltageOut(0))
+    
     def periodic(self):
         limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
         goal = self.target if self.limits[1] > self.target > self.limits[0] else \
             self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
 
-        if goal != self.prevGoal:
+        if goal != self.prevGoal and self.enabled:
             self.prevGoal = goal
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
 

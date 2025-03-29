@@ -55,7 +55,8 @@ class Score(commands2.Subsystem):
             self.position(position),
             self.grabber.intake(),
             self.position(constants.scorePositions.idle),
-            commands2.cmd.runOnce(self.grabber.HLD)
+            commands2.cmd.runOnce(self.grabber.HLD),
+            self.resetElevator()
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
@@ -65,7 +66,8 @@ class Score(commands2.Subsystem):
             self.position(position),
             self.grabber.outtake(),
             self.position(constants.scorePositions.idle),
-            commands2.cmd.runOnce(self.grabber.HLD)
+            commands2.cmd.runOnce(self.grabber.HLD),
+            self.resetElevator()
         )
 
     def l234(self, position: constants.scorePosition) -> commands2.Command:
@@ -86,7 +88,18 @@ class Score(commands2.Subsystem):
             self.position(constants.scorePosition(arm=constants.scorePositions.idle.arm,wrist=constants.scorePositions.idle.wrist)),
             self.position(constants.scorePositions.idle),
             self.debug("done"),
-            commands2.cmd.runOnce(self.grabber.HLD)
+            commands2.cmd.runOnce(self.grabber.HLD),
+            self.resetElevator()
+        )
+
+    def resetElevator(self) -> commands2.Command:
+        return commands2.SequentialCommandGroup(
+            commands2.cmd.runOnce(lambda: self.elevator.set(0)),
+            commands2.cmd.runOnce(lambda: self.elevator.setEnabled(False)),
+            commands2.WaitUntilCommand(self.elevator.inPosition),
+            commands2.cmd.runOnce(lambda: self.elevator.encoder.set_position(0)),
+            commands2.cmd.runOnce(lambda: self.elevator.setEnabled(True)),
+            self.position(constants.scorePositions.idle)
         )
 
     def periodic(self) -> None:
