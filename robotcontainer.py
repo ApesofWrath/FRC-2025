@@ -103,11 +103,12 @@ class RobotContainer:
         NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintake))
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
         NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
-        NamedCommands.registerCommand("Target RD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, True)))
-    #   NamedCommands.registerCommand("Align LD", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, False)),PIDAlignCMD(self.robotDrive,self.limelight)))
-    #  NamedCommands.registerCommand("Align RU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(True, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
-    #    NamedCommands.registerCommand("Align LU", commands2.SequentialCommandGroup(cmd.runOnce(lambda: self.limelight.update_target(False, True)),PIDAlignCMD(self.robotDrive,self.limelight)))
+        NamedCommands.registerCommand("Target RD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, True)))
+        NamedCommands.registerCommand("Target LD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, True)))
+        NamedCommands.registerCommand("Target RU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, False)))
+        NamedCommands.registerCommand("Target LU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, False)))
         NamedCommands.registerCommand("Align",PIDAlignCMD(self.robotDrive,self.limelight))
+        NamedCommands.registerCommand("Brake", self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)

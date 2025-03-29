@@ -29,9 +29,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "Score L4"
+            "waitTime": 1.0
           }
         }
       ]

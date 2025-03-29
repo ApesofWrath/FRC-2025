@@ -80,7 +80,7 @@ class scorePositions:
     )
     hpintake = scorePosition(
         wrist = -90,
-        arm = 55,
+        arm = 35, #55
         elevator = 18
     )
     l1f = scorePosition(
