@@ -209,8 +209,10 @@ class RobotContainer:
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake
-            self.operatorController.leftBumper().onTrue(self.score.intake(constants.scorePositions.intake))
-            self.operatorController.rightBumper().onTrue(self.score.intake(constants.scorePositions.hpintake))
+            self.operatorController.rightBumper().onTrue(self.score.intake(constants.scorePositions.intake))
+            self.operatorController.rightTrigger().onTrue(self.score.intake(constants.scorePositions.hpintake))
+            self.operatorController.leftBumper().onTrue(self.score.intake(constants.scorePositions.intakeback))
+            self.operatorController.leftTrigger().onTrue(self.score.intake(constants.scorePositions.hpintakeback))
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
@@ -223,11 +225,8 @@ class RobotContainer:
             self.operatorController.y().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l4f),self.score.l234(constants.scorePositions.l4b),lambda: self.limelight.__getattribute__("frontForward")))
 
             # climb
-            self.operatorController.leftTrigger().onTrue(self.score.position(constants.scorePosition(arm=155)))
-            self.operatorController.rightTrigger().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
-
-            # for auton testing
-            self.operatorController.povDown().onTrue(self.score.position(constants.scorePositions.hpintake))
+            self.operatorController.leftStick().onTrue(self.score.position(constants.scorePosition(arm=155)))
+            self.operatorController.rightStick().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
 
         if self.configController.isConnected():
             print("Binding config controller")

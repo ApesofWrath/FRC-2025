@@ -50,7 +50,7 @@ class Score(commands2.Subsystem):
 
     def intake(self,position:constants.scorePosition) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
-            self.position(constants.scorePosition(arm=20)),
+            self.position(constants.scorePosition(arm=20 if position.arm > 180 else 160)),
             self.position(constants.scorePosition(wrist=position.wrist)),
             self.position(position),
             self.grabber.intake(),
