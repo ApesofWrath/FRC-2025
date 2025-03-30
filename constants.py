@@ -96,49 +96,49 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 23
+        reefDistance = 26.5
     )
     l2f = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 6,
-        reefDistance = 15
+        reefDistance = 18.7
     )
     l3f = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 15
+        reefDistance = 18.7
     )
     l4f = scorePosition(
         wrist = 0,
         arm = 25,
         elevator = 54,
-        reefDistance = 23
+        reefDistance = 26.5
     )
     l1b = scorePosition(
         wrist = 90,
         arm = 155,
         elevator = 11,
-        reefDistance = 23
+        reefDistance = 26.5
     )
     l2b = scorePosition(
         wrist = 0,
         arm = 140,
         elevator = 6,
-        reefDistance = 15
+        reefDistance = 18.7
     )
     l3b = scorePosition(
         wrist = 0,
         arm = 140,
         elevator = 21,
-        reefDistance = 15
+        reefDistance = 18.7
     )
     l4b = scorePosition(
         wrist = 0,
         arm = 155,
         elevator = 54,
-        reefDistance = 23
+        reefDistance = 26.5
     )
 
 class Elevator:
@@ -204,7 +204,7 @@ class Arm:
     encoderConfig = configs.CANcoderConfiguration() \
         .with_magnet_sensor(
             configs.MagnetSensorConfigs() \
-                .with_magnet_offset(-0.150634765625) \
+                .with_magnet_offset(-0.10107421875) \
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )

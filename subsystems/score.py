@@ -26,9 +26,9 @@ class Score(commands2.Subsystem):
         self.disallowGrabberRotation = (-2, 2)
         self.wrist.limit(self.disallowGrabberRotation)
 
-        self.allowArmRetraction = (-14.25,160)
+        self.allowArmRetraction = (-14.25,194.25)
         self.disallowArmRetractionFront = (-14.25,35)
-        self.disallowArmRetractionBack = (142,187)
+        self.disallowArmRetractionBack = (145,194.25)
         self.arm.limit(self.allowArmRetraction)
 
         self.allowElevatorDecent = (.99,55)
@@ -50,7 +50,7 @@ class Score(commands2.Subsystem):
 
     def intake(self,position:constants.scorePosition) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
-            self.position(constants.scorePosition(arm=20 if position.arm > 180 else 160)),
+            self.position(constants.scorePosition(arm=20 if position.arm < 180 else 160)),
             self.position(constants.scorePosition(wrist=position.wrist)),
             self.position(position),
             self.grabber.intake(),
@@ -94,12 +94,12 @@ class Score(commands2.Subsystem):
 
     def resetElevator(self) -> commands2.Command:
         return commands2.SequentialCommandGroup(
-            commands2.cmd.runOnce(lambda: self.elevator.set(0)),
-            commands2.cmd.runOnce(lambda: self.elevator.setEnabled(False)),
+            self.position(constants.scorePositions.idle),
             commands2.WaitUntilCommand(self.elevator.inPosition),
-            commands2.cmd.runOnce(lambda: self.elevator.encoder.set_position(0)),
+            commands2.cmd.runOnce(lambda: self.elevator.setEnabled(False)),
+            commands2.WaitUntilCommand(lambda: abs(self.elevator.motor.get_velocity().value_as_double) < .01),
+            commands2.cmd.runOnce(lambda: self.elevator.motor.set_position(0)),
             commands2.cmd.runOnce(lambda: self.elevator.setEnabled(True)),
-            self.position(constants.scorePositions.idle)
         )
 
     def periodic(self) -> None:
