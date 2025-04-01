@@ -1,0 +1,97 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Grabber HLD"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "for auto align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Target RD"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "for align- reef to coral station (1)"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Back Intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "station to reef - auto align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Target LD"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": null,
+  "choreoAuto": true
+}

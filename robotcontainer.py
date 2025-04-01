@@ -102,6 +102,7 @@ class RobotContainer:
         NamedCommands.registerCommand("Human player intake position", self.score.position(constants.scorePositions.hpintake))
         NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintake))
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
+        NamedCommands.registerCommand("Back Intake", self.score.intake(constants.scorePositions.intakeback))
         NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
         NamedCommands.registerCommand("Target RD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, True)))
         NamedCommands.registerCommand("Target LD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, True)))
