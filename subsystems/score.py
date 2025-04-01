@@ -59,6 +59,8 @@ class Score(commands2.Subsystem):
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
+
+    def hpintake(self,position:constants.scorePosition) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
             self.position(position),
             self.grabber.intake(),

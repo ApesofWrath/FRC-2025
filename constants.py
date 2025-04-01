@@ -79,7 +79,7 @@ class scorePositions:
     )
     hpintake = scorePosition(
         wrist = -90,
-        arm = 35, #55
+        arm = 35,
         elevator = 18
     )
     intakeback = scorePosition(
@@ -89,7 +89,7 @@ class scorePositions:
     )
     hpintakeback = scorePosition(
         wrist = 90,
-        arm = 145, #55
+        arm = 145,
         elevator = 18
     )
     l1f = scorePosition(
