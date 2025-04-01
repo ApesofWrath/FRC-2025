@@ -79,7 +79,8 @@ class Score(commands2.Subsystem):
             self.debug("outtake"),
             self.position(
                 constants.scorePosition(
-                    elevator = position.elevator - (3 if position.elevator != constants.scorePositions.l4f.elevator else 8)
+                    elevator = position.elevator - (6 if position.elevator == constants.scorePositions.l3f.elevator else
+                                                    6 if position.elevator == constants.scorePositions.l4f.elevator else 8)
                 )
             ),
             self.grabber.outtake(),

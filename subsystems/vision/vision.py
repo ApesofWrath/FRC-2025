@@ -12,7 +12,7 @@ from pathplannerlib.auto import AutoBuilder
 from wpilib import  Field2d, DriverStation, SmartDashboard
 
 import constants
-from subsystems.vision.lib import LimelightHelpers
+from subsystems.vision.lib import LimelightHelpers, PoseEstimate
 from subsystems.drivetrain import CommandSwerveDrivetrain as Drivetrain
 
 class Limelight(commands2.Subsystem):
@@ -87,11 +87,13 @@ class Limelight(commands2.Subsystem):
         self.targetOnAField.setRobotPose(self.target)
         SmartDashboard.putData("pathTarget",self.targetOnAField)
 
-    def std_dev_math(self, estimate):
+    def std_dev_math(self, estimate: PoseEstimate):
         if estimate.tag_count == 0:
             return 0.5, 0.5, 0.5
-        return 0.1, 0.1, math.inf
         avg_dist = sum(f.dist_to_camera for f in estimate.raw_fiducials) / estimate.tag_count
+        if avg_dist < 1.5:
+            return .0, .0, .05
+        return math.inf, math.inf, math.inf
         factor = .25 + (avg_dist ** 2 / 15)
 
         return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
@@ -130,17 +132,16 @@ class Limelight(commands2.Subsystem):
         self.pigeon2.set_yaw(new_value)
 
     def periodic(self) -> None:
-        # DO IMU MODE 3 WHEN DISSABLE AND 2 OTHERWISE
+        # TODO: refactor
         if DriverStation.isEnabled():
             for name in constants.Limelight.kLimelightHostnames:
-                LimelightHelpers.set_imu_mode(name,4)
+                LimelightHelpers.set_imu_mode(name,3)
                 LimelightHelpers.set_robot_orientation(
                     name,
-                    self.drivetrain.get_state().pose.rotation().degrees(),
+                    self.pigeon2.get_yaw(True).value,
                     0,0,0,0,0
                 )
         elif DriverStation.isDisabled():
-            # TODO: refactor
             if not self.posset:
                 for name in constants.Limelight.kLimelightHostnames:
                     LimelightHelpers.set_imu_mode(name,1)
@@ -175,10 +176,10 @@ class Limelight(commands2.Subsystem):
         for future in concurrent.futures.as_completed(futures):
             estimate = future.result()
             if estimate and estimate.tag_count > 0:
-                pose = estimate.pose.relativeTo(self.drivetrain.get_state().pose)
-                if DriverStation.isDisabled() or math.sqrt(pose.x ** 2 + pose.y ** 2) <= 1.0:
-                    self.drivetrain.add_vision_measurement(
-                        estimate.pose,
-                        utils.fpga_to_current_time(estimate.timestamp_seconds),
-                        self.std_dev_math(estimate)
-                    )
+                #pose = estimate.pose.relativeTo(self.drivetrain.get_state().pose)
+                #if DriverStation.isDisabled() or math.sqrt(pose.x ** 2 + pose.y ** 2) <= 1.0:
+                self.drivetrain.add_vision_measurement(
+                    estimate.pose,
+                    utils.fpga_to_current_time(estimate.timestamp_seconds),
+                    self.std_dev_math(estimate)
+                )

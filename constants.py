@@ -52,8 +52,8 @@ class scorePosition:
     reefDistance: Union[units.inches,None] = None
 
 class Direction(Enum):
-    LEFT: units.inches = 8.232
-    RIGHT: units.inches = -4.768
+    LEFT: units.inches = 8.232 +1.5 
+    RIGHT: units.inches = -4.768 +1.5
     def distance(self, frontforwards) -> units.inches:
         realside = self if frontforwards else (self.LEFT if self == self.RIGHT else self.RIGHT)
         return realside.value * (frontforwards * 2 - 1)
@@ -96,7 +96,7 @@ class scorePositions:
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 26.5
+        reefDistance = 25.5
     )
     l2f = scorePosition(
         wrist = 0,
@@ -114,13 +114,13 @@ class scorePositions:
         wrist = 0,
         arm = 25,
         elevator = 54,
-        reefDistance = 26.5
+        reefDistance = 25.5
     )
     l1b = scorePosition(
         wrist = 90,
         arm = 155,
         elevator = 11,
-        reefDistance = 26.5
+        reefDistance = 25.5
     )
     l2b = scorePosition(
         wrist = 0,
@@ -138,7 +138,7 @@ class scorePositions:
         wrist = 0,
         arm = 155,
         elevator = 54,
-        reefDistance = 26.5
+        reefDistance = 25.5
     )
 
 class Elevator:
