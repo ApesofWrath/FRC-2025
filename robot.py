@@ -49,7 +49,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # This makes sure that the autonomous stops running when teleop starts
         # running. If you want the autonomous to continue until interrupted by
         # another command, remove this line or comment it out.
-        #self.container.climb.move(False, constants.Climb.unspoolVoltage).schedule()
+        self.container.climb.unspool(129.2).schedule()
         if self.autonomousCommand is not None:
             self.autonomousCommand.cancel()
 

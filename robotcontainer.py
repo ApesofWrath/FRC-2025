@@ -226,8 +226,8 @@ class RobotContainer:
             self.operatorController.y().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l4f),self.score.l234(constants.scorePositions.l4b),lambda: self.limelight.__getattribute__("frontForward")))
 
             # climb
-            self.operatorController.leftStick().onTrue(self.score.position(constants.scorePosition(arm=155)))
-            self.operatorController.rightStick().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
+            self.operatorController.leftStick().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=135)),self.climb.unspool(296.77832)))
+            self.operatorController.rightStick().onTrue(self.climb.climb())
 
         if self.configController.isConnected():
             print("Binding config controller")

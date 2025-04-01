@@ -271,10 +271,9 @@ class Climb:
     id: int = 21
     servoChannel: int = 1
     currentLimit: units.amperes = 80
-    unspoolVoltage: units.volts = 3
-    unspoolTarget: units.degrees = 90.6
-    climbVoltage: units.volts = -10
-    climbTarget: units.degrees = -145
+    unspoolVoltage: units.volts = 12
+    climbVoltage: units.volts = -12
+    climbTarget: units.degrees = 0
 
 class TunerConstants:
     """

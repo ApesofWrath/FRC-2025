@@ -42,33 +42,28 @@ class Climb(commands2.Subsystem):
         # unengadge servo and go out when the operator presses a button
         # engadge servo and go back in when the operator presses a diferent button
 
-    def move(self, retracting: bool, voltage: float):
-        if not retracting:
-            return commands2.SequentialCommandGroup(
-                self.debug("extend start"),
-                commands2.cmd.runOnce(lambda: self.servo.set(retracting)),
-                self.debug("extend servo set"),
-                commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(voltage))),
-                self.debug("extend voltage set"),
-                commands2.WaitUntilCommand(
-                    lambda:
-                        self.motor.get_position().value_as_double > const.unspoolTarget
-                    
-                ),
-                self.debug("extend waited"),
-                commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
-                self.debug("extend voltage zeroed")
+    def unspool(self, target):
+        return commands2.SequentialCommandGroup(
+            self.debug("extend start"),
+            commands2.cmd.runOnce(lambda: self.servo.set(0)),
+            self.debug("extend servo set"),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(const.unspoolVoltage))),
+            self.debug("extend voltage set"),
+            commands2.WaitUntilCommand(lambda: self.motor.get_position().value_as_double > target),
+            self.debug("extend waited"),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
+            self.debug("extend voltage zeroed")
+        )
 
-            )
-        else:
-            return commands2.SequentialCommandGroup(
-                self.debug("climb start"),
-                commands2.cmd.runOnce(lambda: self.servo.set(retracting)),
-                self.debug("climb servo set"),
-                commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(voltage))),
-                self.debug("climb voltage set"),
-                commands2.WaitUntilCommand(lambda: self.motor.get_position().value_as_double < const.climbTarget),
-                self.debug("climb waited"),
-                commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
-                self.debug("climb voltage zeroed")
-            )
+    def climb(self):
+        return commands2.SequentialCommandGroup(
+            self.debug("climb start"),
+            commands2.cmd.runOnce(lambda: self.servo.set(1)),
+            self.debug("climb servo set"),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(const.climbVoltage))),
+            self.debug("climb voltage set"),
+            commands2.WaitUntilCommand(lambda: self.motor.get_position().value_as_double < const.climbTarget),
+            self.debug("climb waited"),
+            commands2.cmd.runOnce(lambda: self.motor.set_control(controls.VoltageOut(0))),
+            self.debug("climb voltage zeroed")
+        )
