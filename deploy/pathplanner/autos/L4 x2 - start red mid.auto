@@ -41,21 +41,22 @@
           }
         },
         {
-          "type": "wait",
+          "type": "parallel",
           "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "for align- reef to coral station (1)"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Back Intake"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Path 2- reef to coral station.0"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Back Intake"
+                }
+              }
+            ]
           }
         },
         {
