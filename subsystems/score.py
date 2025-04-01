@@ -27,8 +27,8 @@ class Score(commands2.Subsystem):
         self.wrist.limit(self.disallowGrabberRotation)
 
         self.allowArmRetraction = (-14.25,194.25)
-        self.disallowArmRetractionFront = (-14.25,35)
-        self.disallowArmRetractionBack = (145,194.25)
+        self.disallowArmRetractionFront = (-14.25,55)
+        self.disallowArmRetractionBack = (125,194.25)
         self.arm.limit(self.allowArmRetraction)
 
         self.allowElevatorDecent = (.99,55)
@@ -50,8 +50,16 @@ class Score(commands2.Subsystem):
 
     def intake(self,position:constants.scorePosition) -> commands2.Command:
         intakeCmd = commands2.SequentialCommandGroup(
-            self.position(constants.scorePosition(arm=20 if position.arm < 180 else 160)),
-            self.position(constants.scorePosition(wrist=position.wrist)),
+            self.position(constants.scorePosition(arm=50 if position.arm < 180 else 130, wrist=position.wrist, elevator=position.elevator)),
+            self.position(position),
+            self.grabber.intake(),
+            self.position(constants.scorePositions.idle),
+            commands2.cmd.runOnce(self.grabber.HLD),
+            self.resetElevator()
+        )
+        intakeCmd.addRequirements(self)
+        return intakeCmd
+        intakeCmd = commands2.SequentialCommandGroup(
             self.position(position),
             self.grabber.intake(),
             self.position(constants.scorePositions.idle),
@@ -105,11 +113,11 @@ class Score(commands2.Subsystem):
 
     def periodic(self) -> None:
         armStatusValue = self.arm.get()
-        isArmExtendedFront = armStatusValue <= 30
-        isArmExtendedBack = armStatusValue >= 150
+        isArmExtendedFront = armStatusValue <= 60
+        isArmExtendedBack = armStatusValue >= 120
         isArmSomewhatExtendedFront = 70 > armStatusValue > 30
         isArmSomewhatExtendedBack = 110 < armStatusValue < 150
-        isArmSpecialExtension = 60< armStatusValue <120
+        isArmSpecialExtension = 60 < armStatusValue < 120
         isElevatorUp = self.elevator.motor.get_position().value_as_double > 26*constants.Elevator.turnsPerInch
         isGrabberAngled = abs(self.wrist.encoder.get_position().value_as_double) > degreesToRotations(5)
 

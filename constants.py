@@ -20,7 +20,7 @@ class DebugSender():
     def __init__(self, name, enable = True, datafn = None):
         if enable:
             self.nttentry = SmartDashboard.getEntry(name)
-            self.nttentry.setString("")
+            self.nttentry.setInteger(0)
             if datafn is None:
                 self.send = lambda data: self.nttentry.setValue(data)
                 self.__call__ = lambda data: cmd.runOnce(lambda: self.send(data))
@@ -193,12 +193,12 @@ class Arm:
             .with_k_v(5.9659) \
             .with_k_a(0.5081) \
             .with_k_g(0.44017) \
-            .with_k_p(122.58) \
+            .with_k_p(142.58) \
             .with_k_d(22.153)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
             .with_motion_magic_acceleration(8) \
-            .with_motion_magic_cruise_velocity(1.5) \
+            .with_motion_magic_cruise_velocity(2) \
             .with_motion_magic_jerk(16)
         )
     encoderConfig = configs.CANcoderConfiguration() \
@@ -242,7 +242,7 @@ class Wrist:
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
             .with_motion_magic_acceleration(20 * gearRatio * 3) \
-            .with_motion_magic_cruise_velocity(.5 * gearRatio * 3) \
+            .with_motion_magic_cruise_velocity(2 * gearRatio) \
             .with_motion_magic_jerk(40 * gearRatio * 3)
         )
 
