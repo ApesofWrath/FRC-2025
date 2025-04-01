@@ -185,7 +185,6 @@ class RobotContainer:
             self.driverController.povUp().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(-5)))
             self.driverController.povDown().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(5)))
 
-
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
                 self.limelight.runOnce(lambda: self.limelight.pigeon2.set_yaw(0))

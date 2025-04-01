@@ -26,6 +26,8 @@ class Limelight(commands2.Subsystem):
             field = Field2d()
             field.setRobotPose(target)
             SmartDashboard.putData("alignTarget " + str(id), field)
+
+        self.tag_seen = False
         
         self.pathcmd = commands2.Command()
         self.target = Pose2d()
@@ -41,12 +43,6 @@ class Limelight(commands2.Subsystem):
         """
         Add vision measurement to MegaTag2
         """
-
-        '''LimelightHelpers.set_robot_orientation(
-            LLHostname,
-            self.pigeon2.get_yaw().value,
-            0,0,0,0,0
-        )'''
 
         # get botpose estimate with origin on blue side of field
         mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(LLHostname)
@@ -94,9 +90,6 @@ class Limelight(commands2.Subsystem):
         if avg_dist < 1.5:
             return .0, .0, .05
         return math.inf, math.inf, math.inf
-        factor = .25 + (avg_dist ** 2 / 15)
-
-        return 0.5 * factor, 0.5 * factor, math.inf if estimate.is_megatag_2 else (0.5 * factor)
 
     def getPath(self):
         driveState = self.drivetrain.get_state()
@@ -132,6 +125,8 @@ class Limelight(commands2.Subsystem):
         self.pigeon2.set_yaw(new_value)
 
     def periodic(self) -> None:
+        self.tag_seen = False
+
         # TODO: refactor
         if DriverStation.isEnabled():
             for name in constants.Limelight.kLimelightHostnames:
@@ -178,6 +173,7 @@ class Limelight(commands2.Subsystem):
             if estimate and estimate.tag_count > 0:
                 #pose = estimate.pose.relativeTo(self.drivetrain.get_state().pose)
                 #if DriverStation.isDisabled() or math.sqrt(pose.x ** 2 + pose.y ** 2) <= 1.0:
+                self.tag_seen = estimate.raw_fiducials[0].id in list(range(6,12))+list(range(17,23)) or self.tag_seen
                 self.drivetrain.add_vision_measurement(
                     estimate.pose,
                     utils.fpga_to_current_time(estimate.timestamp_seconds),
