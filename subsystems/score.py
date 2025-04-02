@@ -90,7 +90,7 @@ class Score(commands2.Subsystem):
             self.position(
                 constants.scorePosition(
                     elevator = position.elevator - (6 if position.elevator == constants.scorePositions.l3f.elevator else
-                                                    6 if position.elevator == constants.scorePositions.l4f.elevator else 8)
+                                                    6 if position.elevator == constants.scorePositions.l4f.elevator else 2)
                 )
             ),
             self.grabber.outtake(),
