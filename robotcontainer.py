@@ -95,12 +95,13 @@ class RobotContainer:
         NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2f))
         NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3f))
         NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4f))
+        NamedCommands.registerCommand("Score L4 no outtake", self.score.position(constants.scorePosition(elevator=constants.scorePositions.l4f.elevator)    ))
         NamedCommands.registerCommand("Grabber HLD", cmd.runOnce(self.score.grabber.HLD))
         NamedCommands.registerCommand("Grabber REV", cmd.runOnce(self.score.grabber.REV))
         NamedCommands.registerCommand("Grabber OFF", cmd.runOnce(self.score.grabber.OFF))
         NamedCommands.registerCommand("Grabber FWD", cmd.runOnce(self.score.grabber.FWD))
-        NamedCommands.registerCommand("Human player intake position", self.score.position(constants.scorePositions.hpintake))
-        NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintake))
+        NamedCommands.registerCommand("Human player intake position", self.score.position(constants.scorePositions.hpintakeback))
+        NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintakeback)) # TODO: ???? bad
         NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
         NamedCommands.registerCommand("Back Intake", self.score.intake(constants.scorePositions.intakeback))
         NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
@@ -109,6 +110,7 @@ class RobotContainer:
         NamedCommands.registerCommand("Target RU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, False)))
         NamedCommands.registerCommand("Target LU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, False)))
         NamedCommands.registerCommand("Align",PIDAlignCMD(self.robotDrive,self.limelight))
+        NamedCommands.registerCommand("Slow Align",PIDAlignCMD(self.robotDrive,self.limelight,0.75))
         NamedCommands.registerCommand("Brake", self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
         # The driver's controller
@@ -216,13 +218,12 @@ class RobotContainer:
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
-            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle),commands2.cmd.runOnce(self.score.grabber.HLD),self.score.resetElevator()))
-
             # score at various heights
             self.operatorController.a().onTrue(commands2.ConditionalCommand(self.score.l1(constants.scorePositions.l1f),self.score.l1(constants.scorePositions.l1b),lambda: self.limelight.__getattribute__("frontForward")))
             self.operatorController.b().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l2f),self.score.l234(constants.scorePositions.l2b),lambda: self.limelight.__getattribute__("frontForward")))
             self.operatorController.x().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l3f),self.score.l234(constants.scorePositions.l3b),lambda: self.limelight.__getattribute__("frontForward")))
             self.operatorController.y().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l4f),self.score.l234(constants.scorePositions.l4b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle),commands2.cmd.runOnce(self.score.grabber.HLD),self.score.resetElevator()))
 
             # climb
             self.operatorController.leftStick().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=135)),self.climb.unspool(296.77832)))

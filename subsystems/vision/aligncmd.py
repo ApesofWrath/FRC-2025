@@ -12,10 +12,11 @@ import constants
 
 # thanks 4915
 class PIDAlignCMD(Command):
-    def __init__(self, swerve: CommandSwerveDrivetrain, vision: Limelight):
+    def __init__(self, swerve: CommandSwerveDrivetrain, vision: Limelight, speedMult: float = 1):
         self.swerve = swerve
         self.vision = vision
         self.endTrigger = Trigger(self.checkDelta).debounce(.1)
+        self.speedMult = speedMult
     
     def checkDelta(self):
         diff = self.swerve.get_state().pose.relativeTo(self.goal)
@@ -34,15 +35,15 @@ class PIDAlignCMD(Command):
         goalState.pose = self.goal
       
         speedy = self.swerve.autonpid.calculateRobotRelativeSpeeds(self.swerve.get_state().pose,goalState)
-        SmartDashboard.putNumber("target_vx", speedy.vx)
-        SmartDashboard.putNumber("target_vy", speedy.vy)
-        SmartDashboard.putNumber("target_omega", speedy.omega)
+        SmartDashboard.putNumber("target_vx", speedy.vx * self.speedMult)
+        SmartDashboard.putNumber("target_vy", speedy.vy * self.speedMult)
+        SmartDashboard.putNumber("target_omega", speedy.omega * self.speedMult)
         self.swerve.set_control(
             RobotCentric()
-                .with_rotational_rate(min(speedy.omega, math.pi))
+                .with_rotational_rate(min(speedy.omega * self.speedMult, math.pi))
                 #.with_forward_perspective(ForwardPerspectiveValue.BLUE_ALLIANCE)\
-                .with_velocity_x(speedy.vx)
-                .with_velocity_y(speedy.vy)
+                .with_velocity_x(speedy.vx * self.speedMult)
+                .with_velocity_y(speedy.vy * self.speedMult)
                 #.with_target_direction(goalState.deltaRot)
         )
     
