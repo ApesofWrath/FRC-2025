@@ -1,3 +1,8 @@
+## \mainpage
+# This is the documentation for [the codebase of Maurice](https://github.com/ApesofWrath/FRC-2025), our robot for the FRC game [Reefscape](https://en.wikipedia.org/wiki/Reefscape).
+#
+# To navigate this page, I suggest navigating by Classes or Files.
+
 # project imports
 import constants
 from constants import Direction
