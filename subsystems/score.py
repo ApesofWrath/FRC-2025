@@ -5,8 +5,6 @@ import constants
 from subsystems.positionalSubsystem import PositionalSubsystem
 from subsystems.grabber import Grabber
 
-from typing import Callable
-
 class Score(commands2.Subsystem):
     def __init__(
             self,

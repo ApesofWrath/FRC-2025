@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['documentation_20of_20maurice_20s_20codebase_0',['Documentation of Maurice&apos;s codebase',['../index.html',1,'']]]
+  ['scoring_0',['Scoring',['../md_Scoring.html',1,'']]]
 ];
