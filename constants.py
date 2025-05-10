@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Union, Callable
+from typing import Union
 from math import pi
 
 from wpilib import SmartDashboard
