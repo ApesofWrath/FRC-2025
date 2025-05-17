@@ -136,19 +136,19 @@ class RobotContainer:
                         self.drive.with_velocity_x(
                             #self.slewRateX.calculate(-self.driverController.getLeftY())
                             -self.driverController.getLeftY()
-                            * constants.Global.max_speed
+                            * constants.Global.max_speed * .25
                             * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive forward with negative Y (forward)
                         .with_velocity_y(
                             #self.slewRateY.calculate(-self.driverController.getLeftX())
                             -self.driverController.getLeftX()
-                            * constants.Global.max_speed
+                            * constants.Global.max_speed * .25
                             * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive left with negative X (left)
                         .with_rotational_rate(
                             #self.slewRateT.calculate(self.driverController.getRightX())
                             self.driverController.getRightX()
-                            * constants.Global.max_angular_rate
+                            * constants.Global.max_angular_rate * .25
                             * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )

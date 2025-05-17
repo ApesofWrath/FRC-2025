@@ -21,7 +21,6 @@ class Limelight(commands2.Subsystem):
         self.drivetrain = drive
         self.pigeon2 = Pigeon2(constants.Limelight.kGyroId, "Drivetrain")
         self.pigeon2.set_yaw((DriverStation.getAlliance() == DriverStation.Alliance.kBlue) * 180)
-        self.drivetrain.set_vision_measurement_std_devs((0.7, 0.7, 0.1)) #(0.7, 0.7, 9999999)
 
         for id,target in constants.Limelight.kAlignmentTargets.items():
             field = Field2d()
@@ -29,7 +28,7 @@ class Limelight(commands2.Subsystem):
             SmartDashboard.putData("alignTarget " + str(id), field)
 
         for name in constants.Limelight.kLimelightHostnames:
-            LimelightHelpers.set_imu_mode(name,4) # TODO: get it to work with IMU mode 3 (better)
+            LimelightHelpers.set_imu_mode(name,3) # TODO: get it to work with IMU mode 3 (better)
 
         self.targetOnAField = Field2d()
         self.close = Field2d()
