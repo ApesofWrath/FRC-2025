@@ -3,7 +3,7 @@ let
 	fhs = pkgs.buildFHSEnv {
 		name = "my-fhs-environment";
 
-		targetPkgs = _: with pkgs; [ python3 xorg.libX11 libGL ];
+		targetPkgs = _: with pkgs; [ python3 xorg.libX11 libGL doxygen ];
 
 		profile = ''
 			set -e

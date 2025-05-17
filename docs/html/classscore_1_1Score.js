@@ -1,0 +1,26 @@
+var classscore_1_1Score =
+[
+    [ "__init__", "classscore_1_1Score.html#aa46a9e4f245106944e0da024ff0d8448", null ],
+    [ "hpintake", "classscore_1_1Score.html#a57a8e1d939b67a9a67c03ce5b58d06fb", null ],
+    [ "intake", "classscore_1_1Score.html#a07c588c98473601b710b6397c55e17a3", null ],
+    [ "l1", "classscore_1_1Score.html#a8cf039357f6eba64b412890f09731b3c", null ],
+    [ "l234", "classscore_1_1Score.html#a68856fd49650554f3239c65a525fc14f", null ],
+    [ "periodic", "classscore_1_1Score.html#aee6359e2b55b161955b65a88d19fad50", null ],
+    [ "position", "classscore_1_1Score.html#a611fcefad1d81041128a460322b8877d", null ],
+    [ "resetElevator", "classscore_1_1Score.html#affb195c6aa545867752d2df2fa44a89f", null ],
+    [ "alignDebug", "classscore_1_1Score.html#a38b69cb66d560ac3b51258f9b134997a", null ],
+    [ "allowArmRetraction", "classscore_1_1Score.html#ac9dcabf616d4c8f3c7b7bf21305f7110", null ],
+    [ "allowElevatorDecent", "classscore_1_1Score.html#ae02148413de2922b24b14ad644d51f33", null ],
+    [ "allowGrabberRotation", "classscore_1_1Score.html#ab19b1ad4990cbc0ef56e790b77147801", null ],
+    [ "arm", "classscore_1_1Score.html#a0476b6b35d1b878e19b56994b77b4825", null ],
+    [ "debug", "classscore_1_1Score.html#a0514aabed091ee5e2f35766eb01eced6", null ],
+    [ "disallowArmRetractionBack", "classscore_1_1Score.html#a38f8538c1291ff36a59501a61d79adb9", null ],
+    [ "disallowArmRetractionFront", "classscore_1_1Score.html#a52bf45aac9d66ecc186b8d32dd2e3b0e", null ],
+    [ "disallowElevatorDecent", "classscore_1_1Score.html#a3df0c3c266ccef98953c5beb4c84e7e6", null ],
+    [ "disallowGrabberRotation", "classscore_1_1Score.html#a3a9f7a4b9985672877ab164a9adefbaf", null ],
+    [ "elevator", "classscore_1_1Score.html#a07d0ca01b0e49e1fb62dd73d6bc59dd2", null ],
+    [ "grabber", "classscore_1_1Score.html#ac776868481e81c1b7f0ec0eee515c14e", null ],
+    [ "somewhatAllowGrabberRotationBack", "classscore_1_1Score.html#a0db4a6b5ee36564aa405bba94043d578", null ],
+    [ "somewhatAllowGrabberRotationFront", "classscore_1_1Score.html#ae14b6bfff63e01364d7f6154c0e7ca39", null ],
+    [ "wrist", "classscore_1_1Score.html#a65524816e234d2027799d9b628859719", null ]
+];

@@ -1,0 +1,124 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Grabber HLD"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "p1 for auto align w L4 (1)"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "p2 for auto align w L4"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Score L4 no outtake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Target RD"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Slow Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Path 2- reef to coral station.0"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Human player intake position"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Human player intake"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "station to reef - auto align"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Score L4 no outtake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Target LD"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Slow Align"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": null,
+  "choreoAuto": true
+}

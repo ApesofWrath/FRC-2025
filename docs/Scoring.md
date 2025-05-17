@@ -1,0 +1,1 @@
+The code for Maurice's scoring system is stored in the [Score](./classscore_1_1Score.html) class. This class manages the code for the [PositionalSubsystem](./classpositionalSubsystem_1_1PositionalSubsystem.html)s representing the elevator, arm, and wrist, as well as the [Grabber](./classgrabber_1_1Grabber.html).

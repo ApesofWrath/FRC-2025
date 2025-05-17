@@ -1,12 +1,11 @@
 # project
-from constants import sysidConfig
+from constants import sysidConfig, DebugSender
 
 # standard
 from typing import Union, Tuple
 
 # wpilib
 import commands2
-from wpilib import SmartDashboard
 from wpimath import units
 from commands2.sysid import SysIdRoutine
 from wpilib.sysid import SysIdRoutineLog
@@ -79,6 +78,11 @@ class PositionalSubsystem(commands2.Subsystem):
             )
         )
 
+        self.target_debug = DebugSender(self.getName()+"Target",False,lambda: self.target/self.conversionRate)
+        self.lim_target = DebugSender(self.getName()+"LimTarget",False,)
+        self.pos_debug = DebugSender(self.getName()+"Position",False,self.get)
+
+        self.enabled = True
         self.prevGoal = None
         self.set(initialTarget)
 
@@ -89,7 +93,7 @@ class PositionalSubsystem(commands2.Subsystem):
         return self.sys_id_routine.dynamic(direction)
 
     def set(self, target: Union[units.inches,units.degrees,None]):
-        if target is not None:
+        if target is not None and self.enabled:
             self.target: units.turns = target*self.conversionRate
     
     def get(self, useTurns: bool = False):
@@ -100,29 +104,24 @@ class PositionalSubsystem(commands2.Subsystem):
 
     def limit(self, newLimits: Tuple[units.degrees]):
         self.limits = (newLimits[0]*self.conversionRate,newLimits[1]*self.conversionRate)
-        # if newLimits == self.limits:
-        #     return
-        # self.limits = newLimits
-#        self.motor.configurator.apply(
-#            self.configs.with_software_limit_switch(
-#                configs.SoftwareLimitSwitchConfigs() \
-#                    .with_forward_soft_limit_enable(True) \
-#                    .with_reverse_soft_limit_enable(True) \
-#                    .with_forward_soft_limit_threshold(self.limits[1]) \
-#                    .with_reverse_soft_limit_threshold(self.limits[0])
-#            )
-#        )
-        # dont like this
+    
+    def setEnabled(self, state: bool):
+        if state:
+            self.prevGoal = None
+            self.enabled = True
+        else:
+            self.enabled = False
+            self.motor.set_control(controls.VoltageOut(0))
     
     def periodic(self):
         limitTupleIndex = int(self.target > (self.limits[1] + self.limits[0]) / 2)
         goal = self.target if self.limits[1] > self.target > self.limits[0] else \
             self.limits[limitTupleIndex] + self.limitWaitingDistance * (limitTupleIndex * -2 + 1)
 
-        if goal != self.prevGoal:
+        if goal != self.prevGoal and self.enabled:
             self.prevGoal = goal
             self.motor.set_control(controls.MotionMagicVoltage(0).with_position(goal))
 
-        # SmartDashboard.putNumber(self.getName()+"Target",self.target/self.conversionRate)
-        # SmartDashboard.putNumber(self.getName()+"LimTarget",goal/self.conversionRate)
-        # SmartDashboard.putNumber(self.getName()+"Position",self.get())
+        self.target_debug.send()
+        self.lim_target.send(goal/self.conversionRate)
+        self.pos_debug.send()

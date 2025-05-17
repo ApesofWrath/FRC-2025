@@ -1,12 +1,19 @@
+## \mainpage
+# This is the documentation for [the codebase of Maurice](https://github.com/ApesofWrath/FRC-2025), our robot for the FRC game [Reefscape](https://en.wikipedia.org/wiki/Reefscape).
+#
+# To navigate this page, I suggest navigating by Classes or Files.
+
 # project imports
 import constants
-from subsystems.limelight import Limelight
+from constants import Direction
+from subsystems.vision.vision import Limelight
 from subsystems.score import Score
 from subsystems.climb import Climb
 from subsystems.positionalSubsystem import PositionalSubsystem
 from subsystems.grabber import Grabber
 from subsystems.drivetrain import CommandSwerveDrivetrain
 from telemetry import Telemetry
+from subsystems.vision.aligncmd import PIDAlignCMD
 
 # commands imports
 import commands2
@@ -34,6 +41,8 @@ class RobotContainer:
     def __init__(self) -> None:
         """The container for the robot. Contains subsystems, OI devices, and commands."""
         # The robot's subsystems
+        SignalLogger.stop()
+
         self.robotDrive =  CommandSwerveDrivetrain(
             hardware.TalonFX,
             hardware.TalonFX,
@@ -86,10 +95,28 @@ class RobotContainer:
         self.climb = Climb()
         
         # The robot's auton commands
-        NamedCommands.registerCommand("Score L1", self.score.l1())
-        NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2))
-        NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3))
-        NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4))
+        NamedCommands.registerCommand("Score L1", self.score.l1(constants.scorePositions.l1f))
+        NamedCommands.registerCommand("Score L1 no outtake", self.score.position(constants.scorePositions.l1f))
+        NamedCommands.registerCommand("Score L2", self.score.l234(constants.scorePositions.l2f))
+        NamedCommands.registerCommand("Score L3", self.score.l234(constants.scorePositions.l3f))
+        NamedCommands.registerCommand("Score L4", self.score.l234(constants.scorePositions.l4f))
+        NamedCommands.registerCommand("Score L4 no outtake", self.score.position(constants.scorePosition(elevator=constants.scorePositions.l4f.elevator)    ))
+        NamedCommands.registerCommand("Grabber HLD", cmd.runOnce(self.score.grabber.HLD))
+        NamedCommands.registerCommand("Grabber REV", cmd.runOnce(self.score.grabber.REV))
+        NamedCommands.registerCommand("Grabber OFF", cmd.runOnce(self.score.grabber.OFF))
+        NamedCommands.registerCommand("Grabber FWD", cmd.runOnce(self.score.grabber.FWD))
+        NamedCommands.registerCommand("Human player intake position", self.score.position(constants.scorePositions.hpintakeback))
+        NamedCommands.registerCommand("Human player intake", self.score.intake(constants.scorePositions.hpintakeback)) # TODO: ???? bad
+        NamedCommands.registerCommand("Intake", self.score.intake(constants.scorePositions.intake))
+        NamedCommands.registerCommand("Back Intake", self.score.intake(constants.scorePositions.intakeback))
+        NamedCommands.registerCommand("Outtake", self.score.grabber.outtake())
+        NamedCommands.registerCommand("Target RD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, True)))
+        NamedCommands.registerCommand("Target LD", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, True)))
+        NamedCommands.registerCommand("Target RU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.RIGHT, False)))
+        NamedCommands.registerCommand("Target LU", cmd.runOnce(lambda: self.limelight.update_target(constants.Direction.LEFT, False)))
+        NamedCommands.registerCommand("Align",PIDAlignCMD(self.robotDrive,self.limelight))
+        NamedCommands.registerCommand("Slow Align",PIDAlignCMD(self.robotDrive,self.limelight,0.75))
+        NamedCommands.registerCommand("Brake", self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
 
         # The driver's controller
         self.driverController = commands2.button.CommandXboxController(constants.Global.kDriverControllerPort)
@@ -155,28 +182,15 @@ class RobotContainer:
                 )
             )
 
-            # break on triggers
-            #(self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
-            # slow on bumpers
-            #(self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
+            # break
+            (self.driverController.leftTrigger() | self.driverController.rightTrigger()).whileTrue(self.robotDrive.apply_request(lambda: swerve.requests.SwerveDriveBrake()))
+            # slow
+            (self.driverController.leftBumper() | self.driverController.rightBumper()).onTrue(self.robotDrive.slowly(True)).onFalse(self.robotDrive.slowly(False))
 
-            # Run SysId routines when holding back and face buttons.
-            # Note that each routine should be run exactly once in a single log.
-            self.driverController.povLeft().onTrue(cmd.runOnce(SignalLogger.start))
-
-            (self.driverController.start() & self.driverController.a()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.start() & self.driverController.b()).whileTrue(
-                self.robotDrive.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
-            )
-            (self.driverController.start() & self.driverController.x()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
-            )
-            (self.driverController.start() & self.driverController.y()).whileTrue(
-                self.robotDrive.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
-            )
-            self.driverController.povRight().onTrue(cmd.runOnce(SignalLogger.stop))
+            self.driverController.povLeft().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(-0.1)))
+            self.driverController.povRight().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(0.1)))
+            self.driverController.povUp().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(-5)))
+            self.driverController.povDown().whileTrue(commands2.cmd.runOnce(lambda: self.limelight.adjustGyro(5)))
 
             # reset the field-centric heading on start press
             self.driverController.start().onTrue(
@@ -189,49 +203,47 @@ class RobotContainer:
             )
 
             # go to the closest alignment target
-            self.driverController.leftBumper()\
-                .whileTrue(
-                    commands2.SequentialCommandGroup(
-                        cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, False)),
-                        commands2.WaitUntilCommand(lambda: self.limelight.pathcmd.isFinished()),
-                        cmd.run(lambda: self.limelight.align(constants.Direction.LEFT, False))
-                    ))\
-                .onFalse(
-                    cmd.runOnce(lambda:self.limelight.pathcmd.cancel())
-                )
-            # TODO: Fix the rest
-            # self.driverController.rightBumper().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, False))).onTrue(lambda: self.limelight.align(constants.Direction.RIGHT, False))
-            # self.driverController.leftTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.LEFT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.LEFT, True))
-            # self.driverController.rightTrigger().onTrue(cmd.runOnce(lambda: self.limelight.pathfind(constants.Direction.RIGHT, True))).whileTrue(lambda: self.limelight.align(constants.Direction.RIGHT, True))
+            bindalign = lambda trigger, right, high: trigger.whileTrue(commands2.SequentialCommandGroup(
+                cmd.runOnce(lambda: self.limelight.update_target(right, high)),
+                PIDAlignCMD(self.robotDrive,self.limelight)
+            ))
             
+            bindalign(self.driverController.a(), Direction.LEFT, False)
+            bindalign(self.driverController.b(), Direction.RIGHT, False)
+            bindalign(self.driverController.x(), Direction.LEFT, True)
+            bindalign(self.driverController.y(), Direction.RIGHT, True)
+
         if self.operatorController.isConnected() or alwaysBindAll:
             print("Binding operator controller")
             # intake
-            (self.operatorController.leftBumper()|self.operatorController.rightBumper()).onTrue(self.score.intake())
+            self.operatorController.rightBumper().onTrue(self.score.intake(constants.scorePositions.intake))
+            self.operatorController.rightTrigger().onTrue(self.score.hpintake(constants.scorePositions.hpintake))
+            self.operatorController.leftBumper().onTrue(self.score.intake(constants.scorePositions.intakeback))
+            self.operatorController.leftTrigger().onTrue(self.score.hpintake(constants.scorePositions.hpintakeback))
             self.operatorController.povLeft().onTrue(cmd.runOnce(self.score.grabber.FWD)).onFalse(cmd.runOnce(self.score.grabber.HLD))
             self.operatorController.povRight().onTrue(cmd.runOnce(self.score.grabber.REV)).onFalse(cmd.runOnce(self.score.grabber.OFF))
 
-            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle)))
-
             # score at various heights
-            self.operatorController.a().onTrue(self.score.l1())
-            self.operatorController.b().onTrue(self.score.l234(constants.scorePositions.l2))
-            self.operatorController.x().onTrue(self.score.l234(constants.scorePositions.l3))
-            self.operatorController.y().onTrue(self.score.l234(constants.scorePositions.l4))
+            self.operatorController.a().onTrue(commands2.ConditionalCommand(self.score.l1(constants.scorePositions.l1f),self.score.l1(constants.scorePositions.l1b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.b().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l2f),self.score.l234(constants.scorePositions.l2b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.x().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l3f),self.score.l234(constants.scorePositions.l3b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.y().onTrue(commands2.ConditionalCommand(self.score.l234(constants.scorePositions.l4f),self.score.l234(constants.scorePositions.l4b),lambda: self.limelight.__getattribute__("frontForward")))
+            self.operatorController.povUp().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=90,wrist=0)),self.score.position(constants.scorePositions.idle),commands2.cmd.runOnce(self.score.grabber.HLD),self.score.resetElevator()))
 
             # climb
-            self.operatorController.leftTrigger().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=155)),self.climb.move(False, constants.Climb.unspoolVoltage)))
-            self.operatorController.rightTrigger().onTrue(self.climb.move(True, constants.Climb.climbVoltage))
+            self.operatorController.leftStick().onTrue(commands2.SequentialCommandGroup(self.score.position(constants.scorePosition(arm=135)),self.climb.unspool(296.77832)))
+            self.operatorController.rightStick().onTrue(self.climb.climb())
 
         if self.configController.isConnected():
             print("Binding config controller")
             # https://v6.docs.ctr-electronics.com/en/2024/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html
-            self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
-            self.configController.a().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
-            self.configController.b().onTrue(self.score.elevator.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
-            self.configController.x().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kForward))
-            self.configController.y().onTrue(self.score.elevator.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
-            self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
+            (self.configController.leftTrigger()|self.configController.rightTrigger()).onTrue(self.score.position(constants.scorePositions.l1))
+            #self.configController.leftBumper().onTrue(cmd.runOnce(SignalLogger.start))
+            self.configController.a().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kForward))
+            self.configController.b().whileTrue(self.score.wrist.sys_id_quasistatic(SysIdRoutine.Direction.kReverse))
+            self.configController.x().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kForward))
+            self.configController.y().whileTrue(self.score.wrist.sys_id_dynamic(SysIdRoutine.Direction.kReverse))
+            #self.configController.rightBumper().onTrue(cmd.runOnce(SignalLogger.stop))
 
         if not utils.is_simulation():
             self.logger = Telemetry(constants.Global.max_speed)

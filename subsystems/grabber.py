@@ -3,7 +3,6 @@ import constants
 
 # wpi imports
 import commands2
-from wpilib import SmartDashboard
 
 # vendor imports
 from phoenix6.hardware.talon_fx import TalonFX
@@ -17,52 +16,63 @@ class Grabber(commands2.Subsystem):
 
         self.mainMotor.set_position(0)
 
-        motorConfigs = configs.TalonFXConfiguration()
-
-        motorConfigs.motor_output = configs.MotorOutputConfigs() \
-            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
-
-        motorConfigs.current_limits = configs.CurrentLimitsConfigs() \
-            .with_stator_current_limit_enable(True) \
-            .with_stator_current_limit(constants.Grabber.currentLimit)
+        motorConfigs = configs.TalonFXConfiguration()\
+            .with_motor_output(
+                configs.MotorOutputConfigs() \
+                    .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            )\
+            .with_current_limits(
+                configs.CurrentLimitsConfigs() \
+                    .with_stator_current_limit_enable(True) \
+                    .with_stator_current_limit(constants.Grabber.currentLimit)
+            )\
+            .with_slot0(
+                configs.Slot0Configs()\
+                    .with_k_p(10/16)\
+                    .with_k_i(0)\
+                    .with_k_d(0)\
+                    .with_k_v(10/16)\
+                    .with_k_s(0)\
+                    .with_k_a(0)\
+                    .with_k_g(0)
+            )
 
         self.mainMotor.configurator.apply(motorConfigs)
 
         self.voltage_req = controls.VoltageOut(0)
 
+        self.debug = constants.DebugSender("grabberVoltage")
+
     def FWD(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.FWDvelocity))
+        self.mainMotor.set_control(controls.VelocityVoltage(constants.Grabber.FWDvelocity))
 
     def REV(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.REVvelocity))
+        self.mainMotor.set_control(controls.VelocityVoltage(constants.Grabber.REVvelocity))
 
     def OFF(self) -> None:
         self.mainMotor.set_control(controls.VoltageOut(0))
 
+    def ALN(self) -> None:
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(constants.Grabber.ALNvelovity))
+
     def HLD(self) -> None:
-        self.mainMotor.set_control(controls.VoltageOut(constants.Grabber.HLDvelocity))
+        self.mainMotor.set_control(controls.TorqueCurrentFOC(constants.Grabber.HLDvelocity))
 
     def intake(self) -> commands2.Command:
         intakeCmd = commands2.cmd.runOnce(
-            self.FWD # TODO: this sucks use a rolling buffer with collections.deque
+            self.FWD
         ).andThen(
             commands2.cmd.runOnce(lambda: print("went forward"))
         ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 30)
-        ).andThen(
-            commands2.cmd.runOnce(lambda: print("pass thresh 1"))
-        ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double <= 15)
-        ).andThen(
             commands2.cmd.runOnce(lambda: print("pass thresh 2"))
         ).andThen(
-            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 20)
+            commands2.WaitUntilCommand(lambda: self.mainMotor.get_torque_current().value_as_double >= 40)
         ).andThen(
             commands2.cmd.runOnce(lambda: print("passed threshhold 3"))
         ).andThen(
             commands2.WaitCommand(.1)
         ).andThen(
-            commands2.cmd.runOnce(self.HLD)
+            commands2.cmd.runOnce(self.ALN)
         )
         intakeCmd.addRequirements(self)
         return intakeCmd
@@ -82,5 +92,5 @@ class Grabber(commands2.Subsystem):
             intakeCmd.addRequirements(self)
             return intakeCmd
 
-    #def periodic(self) -> None:
-        #SmartDashboard.putNumber("grabberVoltage",self.mainMotor.get_torque_current().value_as_double)
+    def periodic(self) -> None:
+        self.debug.send(self.mainMotor.get_torque_current().value_as_double)

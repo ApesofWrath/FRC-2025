@@ -7,7 +7,7 @@ import robotcontainer
 # wpi imports
 import commands2
 import commands2.cmd
-
+from wpilib.interfaces import GenericHID
 
 class MyRobot(commands2.TimedCommandRobot):
     """
@@ -49,6 +49,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # This makes sure that the autonomous stops running when teleop starts
         # running. If you want the autonomous to continue until interrupted by
         # another command, remove this line or comment it out.
+        self.container.climb.unspool(129.2).schedule()
         if self.autonomousCommand is not None:
             self.autonomousCommand.cancel()
 
@@ -60,6 +61,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # and running subsystem periodic() methods.  This must be called from the robot's periodic
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
+
+        self.container.driverController.setRumble(GenericHID.RumbleType.kBothRumble, self.container.limelight.tag_seen)
 
     def testInit(self) -> None:
         # Cancels all running commands at the start of test mode

@@ -1,18 +1,42 @@
 from dataclasses import dataclass
-import enum
+from enum import Enum
 from typing import Union
-from phoenix6 import CANBus, configs, signals, swerve
-from wpimath.units import inchesToMeters, rotationsToRadians, degreesToRadians, degreesToRotations
-from wpimath import units
-import commands2.cmd as cmd
-from wpimath.geometry import Transform2d
-from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
 from math import pi
 
-def makeCommand(func):
+from wpilib import SmartDashboard
+from wpimath.geometry import Transform2d
+from wpimath import units
+from wpimath.units import inchesToMeters, rotationsToRadians
+from commands2 import cmd, Command
+from robotpy_apriltag import AprilTagFieldLayout, AprilTagField
+from phoenix6 import CANBus, configs, signals, swerve
+
+def makeCommand(func) -> Command:
     def cmdFn(*args, **kwargs):
         return cmd.runOnce(lambda: func(*args, **kwargs))
     return cmdFn
+
+class DebugSender():
+    def __init__(self, name, enable = True, datafn = None):
+        if enable:
+            self.nttentry = SmartDashboard.getEntry(name)
+            self.nttentry.setInteger(0)
+            if datafn is None:
+                self.send = lambda data: self.nttentry.setValue(data)
+                self.__call__ = lambda data: cmd.runOnce(lambda: self.send(data))
+            else:
+                self.send = lambda: self.nttentry.setValue(datafn())
+                self.__call__ = lambda: cmd.runOnce(self.send)
+        else:
+            if datafn is None:
+                self.send = lambda data: None
+                self.__call__ = lambda data: None
+            else:
+                self.send = lambda: None
+                self.__call__ = lambda: None
+
+    def __call__(self, *args, **kwds):
+        pass
 
 @dataclass
 class sysidConfig:
@@ -27,19 +51,18 @@ class scorePosition:
     elevator: Union[units.inches,None] = None
     reefDistance: Union[units.inches,None] = None
 
-class Direction(enum.Enum):
-    LEFT: bool = False
-    RIGHT: bool = True
+class Direction(Enum):
+    LEFT: units.inches = 8.232 +1.5 
+    RIGHT: units.inches = -4.768 +1.5
+    def distance(self, frontforwards) -> units.inches:
+        realside = self if frontforwards else (self.LEFT if self == self.RIGHT else self.RIGHT)
+        return realside.value * (frontforwards * 2 - 1)
 
 class Limelight:
-    kGyroId = 20
-    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-elevate" ]
+    kLimelightHostnames = [ "limelight-foc", "limelight-boc", "limelight-foe", "limelight-boe" ]
+    kAlignmentTargets = [ AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) ]
 
-    kAlignmentTargets = { id: AprilTagFieldLayout().loadField(AprilTagField.kDefaultField).getTagPose(id).toPose2d().transformBy(Transform2d(0,0,pi)) for id in list(range(6,12))+list(range(17,23)) }
-
-    class precise: # TODO: Tune more & better
-        move_p = 1.75
-        spin_p = 1.5
+    class precise:
         xy_tolerance: units.meters = 0.025
         theta_tolerance: units.degrees = 0.25
 
@@ -51,32 +74,71 @@ class scorePositions:
     )
     intake = scorePosition(
         wrist = -90,
-        arm = -6.75,
-        elevator = 2
+        arm = -14,
+        elevator = 5.5
     )
-    l1 = scorePosition(
+    hpintake = scorePosition(
+        wrist = -90,
+        arm = 35,
+        elevator = 18
+    )
+    intakeback = scorePosition(
+        wrist = 90,
+        arm = 194,
+        elevator = 5.5
+    )
+    hpintakeback = scorePosition(
+        wrist = 90,
+        arm = 145,
+        elevator = 18
+    )
+    l1f = scorePosition(
         wrist = -90,
         arm = 25,
         elevator = 11,
-        reefDistance = 19.5
+        reefDistance = 25.5
     )
-    l2 = scorePosition(
+    l2f = scorePosition(
         wrist = 0,
         arm = 40,
-        elevator = 4,
-        reefDistance = 19.5
+        elevator = 6,
+        reefDistance = 18.7
     )
-    l3 = scorePosition(
+    l3f = scorePosition(
         wrist = 0,
         arm = 40,
         elevator = 21,
-        reefDistance = 19.5
+        reefDistance = 18.7
     )
-    l4 = scorePosition(
+    l4f = scorePosition(
         wrist = 0,
         arm = 25,
         elevator = 54,
-        reefDistance = 26.25
+        reefDistance = 25.5
+    )
+    l1b = scorePosition(
+        wrist = 90,
+        arm = 155,
+        elevator = 11,
+        reefDistance = 25.5
+    )
+    l2b = scorePosition(
+        wrist = 0,
+        arm = 140,
+        elevator = 6,
+        reefDistance = 18.7
+    )
+    l3b = scorePosition(
+        wrist = 0,
+        arm = 140,
+        elevator = 21,
+        reefDistance = 18.7
+    )
+    l4b = scorePosition(
+        wrist = 0,
+        arm = 155,
+        elevator = 54,
+        reefDistance = 25.5
     )
 
 class Elevator:
@@ -131,18 +193,18 @@ class Arm:
             .with_k_v(5.9659) \
             .with_k_a(0.5081) \
             .with_k_g(0.44017) \
-            .with_k_p(122.58) \
+            .with_k_p(142.58) \
             .with_k_d(22.153)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
             .with_motion_magic_acceleration(8) \
-            .with_motion_magic_cruise_velocity(1.5) \
+            .with_motion_magic_cruise_velocity(2) \
             .with_motion_magic_jerk(16)
         )
     encoderConfig = configs.CANcoderConfiguration() \
         .with_magnet_sensor(
             configs.MagnetSensorConfigs() \
-                .with_magnet_offset(-0.059570) \
+                .with_magnet_offset(-0.10107421875) \
                 .with_sensor_direction(signals.SensorDirectionValue.CLOCKWISE_POSITIVE) \
                 .with_absolute_sensor_discontinuity_point(1)
         )
@@ -160,7 +222,7 @@ class Wrist:
 
     config = configs.TalonFXConfiguration() \
         .with_motor_output(configs.MotorOutputConfigs() \
-            .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            .with_neutral_mode(signals.NeutralModeValue.COAST)
         )\
         .with_feedback(configs.FeedbackConfigs() \
             .with_feedback_remote_sensor_id(encoder) \
@@ -171,17 +233,17 @@ class Wrist:
             .with_stator_current_limit(40)
         )\
         .with_slot0(configs.Slot0Configs() \
-            .with_k_s(0.75) \
-            .with_k_v(6.0118) \
-            .with_k_a(0.89434) \
+            .with_k_s(0.19505) \
+            .with_k_v(0.11845) \
+            .with_k_a(0.0017884) \
             .with_k_g(0) \
-            .with_k_p(18.076) \
-            .with_k_d(2.7363)
+            .with_k_p(53.449/2) \
+            .with_k_d(0.38955)
         )\
         .with_motion_magic(configs.MotionMagicConfigs() \
-            .with_motion_magic_acceleration(20 * gearRatio) \
-            .with_motion_magic_cruise_velocity(.5 * gearRatio) \
-            .with_motion_magic_jerk(40 * gearRatio)
+            .with_motion_magic_acceleration(20 * gearRatio * 3) \
+            .with_motion_magic_cruise_velocity(2 * gearRatio) \
+            .with_motion_magic_jerk(40 * gearRatio * 3)
         )
 
     sysidConf = sysidConfig(
@@ -199,19 +261,19 @@ class Wrist:
 
 class Grabber:
     id: int = 17
-    FWDvelocity: int = 8
-    REVvelocity: int = -5
-    HLDvelocity: int = 4
-    currentLimit: int = 30
+    FWDvelocity: units.turns_per_second = 35
+    REVvelocity: units.turns_per_second = -15
+    ALNvelovity: units.amperes = 80
+    HLDvelocity: units.amperes = 20
+    currentLimit: units.amperes = 80
 
 class Climb:
     id: int = 21
     servoChannel: int = 1
-    currentLimit: int = 80
-    unspoolVoltage: int = 3
-    unspoolTarget: int = 90.6
-    climbVoltage: int = -10
-    climbTarget: int = -145
+    currentLimit: units.amperes = 80
+    unspoolVoltage: units.volts = 12
+    climbVoltage: units.volts = -12
+    climbTarget: units.degrees = 0
 
 class TunerConstants:
     """
@@ -289,7 +351,7 @@ class TunerConstants:
     # This may need to be tuned to your individual robot
     _couple_ratio = 3.5714285714285716
 
-    _drive_gear_ratio = 6.746031746031747
+    _drive_gear_ratio = 8.14
     _steer_gear_ratio = 21.428571428571427
     _wheel_radius: units.meters = inchesToMeters(2)
 
@@ -344,8 +406,8 @@ class TunerConstants:
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
-    _front_left_x_pos: units.meters = inchesToMeters(11.625)
-    _front_left_y_pos: units.meters = inchesToMeters(11.625)
+    _front_left_x_pos: units.meters = inchesToMeters(11.5)
+    _front_left_y_pos: units.meters = inchesToMeters(11.5)
 
     # Front Right
     _front_right_drive_motor_id = 7
@@ -355,8 +417,8 @@ class TunerConstants:
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
-    _front_right_x_pos: units.meters = inchesToMeters(11.625)
-    _front_right_y_pos: units.meters = inchesToMeters(-11.625)
+    _front_right_x_pos: units.meters = inchesToMeters(11.5)
+    _front_right_y_pos: units.meters = inchesToMeters(-11.5)
 
     # Back Left
     _back_left_drive_motor_id = 1
@@ -366,8 +428,8 @@ class TunerConstants:
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
-    _back_left_x_pos: units.meters = inchesToMeters(-11.625)
-    _back_left_y_pos: units.meters = inchesToMeters(11.625)
+    _back_left_x_pos: units.meters = inchesToMeters(-11.5)
+    _back_left_y_pos: units.meters = inchesToMeters(11.5)
 
     # Back Right
     _back_right_drive_motor_id = 5
@@ -377,8 +439,8 @@ class TunerConstants:
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 
-    _back_right_x_pos: units.meters = inchesToMeters(-11.625)
-    _back_right_y_pos: units.meters = inchesToMeters(-11.625)
+    _back_right_x_pos: units.meters = inchesToMeters(-11.5)
+    _back_right_y_pos: units.meters = inchesToMeters(-11.5)
 
 
     front_left = _constants_creator.create_module_constants(

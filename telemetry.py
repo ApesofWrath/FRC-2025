@@ -1,6 +1,6 @@
 from ntcore import NetworkTableInstance
 from phoenix6 import SignalLogger, swerve, units
-from wpilib import Color, Color8Bit, Mechanism2d, MechanismLigament2d, SmartDashboard
+from wpilib import Color, Color8Bit, Mechanism2d, MechanismLigament2d#, SmartDashboard
 from wpimath.geometry import Pose2d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition, SwerveModuleState
 
@@ -94,14 +94,14 @@ class Telemetry:
             module_targets_array.append(state.module_targets[i].angle.radians())
             module_targets_array.append(state.module_targets[i].speed)
 
-        SignalLogger.write_double_array("DriveState/Pose", pose_array)
-        SignalLogger.write_double_array("DriveState/ModuleStates", module_states_array)
-        SignalLogger.write_double_array(
-            "DriveState/ModuleTargets", module_targets_array
-        )
-        SignalLogger.write_double(
-            "DriveState/OdometryPeriod", state.odometry_period, "seconds"
-        )
+        # SignalLogger.write_double_array("DriveState/Pose", pose_array)
+        # SignalLogger.write_double_array("DriveState/ModuleStates", module_states_array)
+        # SignalLogger.write_double_array(
+        #     "DriveState/ModuleTargets", module_targets_array
+        # )
+        # SignalLogger.write_double(
+        #     "DriveState/OdometryPeriod", state.odometry_period, "seconds"
+        # )
 
         # Telemeterize the pose to a Field2d
         self._field_type_pub.set("Field2d")
@@ -113,4 +113,4 @@ class Telemetry:
             self._module_directions[i].setAngle(module_state.angle.degrees())
             self._module_speeds[i].setLength(module_state.speed / (2 * self._max_speed))
 
-            SmartDashboard.putData(f"Module {i}", self._module_mechanisms[i])
+            #SmartDashboard.putData(f"Module {i}", self._module_mechanisms[i])
