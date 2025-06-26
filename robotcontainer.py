@@ -175,7 +175,7 @@ class RobotContainer:
                         .with_rotational_rate(
                             #self.slewRateT.calculate(self.driverController.getRightX())
                             self.driverController.getRightX()
-                            * constants.Global.max_angular_rate * .25
+                            * constants.Global.max_angular_rate * .4
                             * max(not self.robotDrive.slow,constants.Global.break_speed_mul)
                         )  # Drive counterclockwise with X (right)
                     )
